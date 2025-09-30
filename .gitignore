@@ -11,3 +11,7 @@ Release
 x64
 *.user
 CMakeSettings.json
+
+# CLion / CMake build directories
+cmake-build-*/
+*.idea/
