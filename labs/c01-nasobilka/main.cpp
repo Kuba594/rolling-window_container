@@ -27,7 +27,7 @@ void argument(int number, int from, int to) {
 void process_arguments(const vector<string>& a) {
     int from = 1;
     int to = 10;
-    for (int i = 1; i < a.size(); ++i) {
+    for (int i = 0; i < a.size(); ++i) {
         if (a[i] == "nasobilka") {
             continue;
         }
@@ -45,7 +45,7 @@ void process_arguments(const vector<string>& a) {
 }
 int main(int argc, char ** argv)
 {
-    vector<string> arg( argv, argv+argc);
+    vector<string> arg( argv+1, argv+argc);
     if (arg.size() < 1) {
         println( "No arguments");
         return 1;
