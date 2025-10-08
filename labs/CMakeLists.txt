@@ -10,3 +10,4 @@ message(STATUS "Using CXX compiler: ${CMAKE_CXX_COMPILER}")
 message(STATUS "CXX standard: ${CMAKE_CXX_STANDARD}")
 
 add_subdirectory(c01-nasobilka)
+add_subdirectory(c02-textparser)

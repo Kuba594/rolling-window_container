@@ -11,22 +11,8 @@ struct ProcessedText {
 	int numbercount = 0;
 	int numbersum = 0;
 };
-// mozne vstupy:
-// Po98adsf asdf 98 7f f8.?..?
-// 
-// sadf.
-// .
-// .
-// 
-// 78
-// asdf dasf
-// 78 sadf7 8asdf.
-// .
-// adsf.dsafa8
-// 9999999999999999999999
-// 
-// konec vstupu
-//
+
+
 
 class InputProcesser {
 private:
@@ -47,20 +33,37 @@ public:
 // radka - jednoznacne
 // znak - jasne
 // cislo - muze byt kdekoliv posloupnost znaku
-void process(char c) {
+void InputProcesser::process(char c) {
+	pt.charcout++;
+	switch (c) {
+		case '\n':
+			pt.rowcount++;
+			break;
+		case '.':
+			pt.sentencecount++;
+			break;
+		case '?':
+			pt.sentencecount++;
+			break;
+		case '!':
+			pt.sentencecount++;
+			break;
+
+	}
 
 }
 
 //parse input
-// parsuje std::cin nebo fstream, vnitøek fce nerozlisuje je tam istream&
-void fce(istream& s) {
+// parsuje std::cin nebo fstream, vnitrek fce nerozlisuje je tam istream&
+void InputProcesser::fce(istream& s) {
 	char c;
 	string word;
 	for (;;) {
 		c = s.get();
-		s >> word;
-		if (s.fail())
+		//s >> word;
+		if (s.fail()) {
 			return;
+		}
 		process(c);
 	}
 }
@@ -69,7 +72,13 @@ void fce(istream& s) {
 
 //print output
 //vytiskne hodnoty ProcessText
-void printoutput() {
+void InputProcesser::printoutput() {
+	println("Chars: {}", pt.charcout);
+	println("Rows: {}", pt.rowcount);
+	println("Words: {}", pt.wordcount);
+	println("Sentences: {}", pt.sentencecount);
+	println("Numbers: {}", pt.numbercount);
+	println("Sum: {}", pt.numbersum);
 
 }
 
@@ -78,6 +87,14 @@ void printoutput() {
 //nacte vstup
 // zavola vytisteni outputu
 int main() {
-	ProcessedText x;
+	InputProcesser x;
+	ifstream f;
+	f.open( "c02-textparser/input.txt");
+	if( ! f.good()) {
+		return 1;
+	}
+	x.fce(f);
+	x.printoutput();
+
 	return 0;
 }
