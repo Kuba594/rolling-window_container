@@ -3,8 +3,13 @@
 #include <fstream>
 using namespace std;
 
+constexpr char EOL = '\n';
+constexpr char DOT = '.';
+constexpr char QUESTION = '?';
+constexpr char EXCLAMATION = '!';
+
 struct ProcessedText {
-	int charcout = 0;
+	int charcount = 0;
 	int rowcount = 0;
 	int wordcount = 0;
 	int sentencecount = 0;
@@ -16,39 +21,66 @@ struct ProcessedText {
 
 class InputProcesser {
 private:
-	ProcessedText pt;
+	bool empty_row_ = true;
+	bool empty_sentence_ = true;
+	bool is_word_ = false;
+	string word_;
+	ProcessedText pt_;
 	void process(char c);
-	void processnumber();
+	void process_word(const string& word);
+	void process_number(const string& word);
 public:
 	void fce(istream& s);
 	void printoutput();
 
 };
 
-//process input
-// z funkce parse input dostane chary a tady kontrola co to je
-// inkrementace ProcessText, referenci
-// slovo - nemezera->mezera, nemezera->konecradku, nemezera->tab, konec vety
-// veta - .,!,?
-// radka - jednoznacne
-// znak - jasne
-// cislo - muze byt kdekoliv posloupnost znaku
-void InputProcesser::process(char c) {
-	pt.charcout++;
-	switch (c) {
-		case '\n':
-			pt.rowcount++;
-			break;
-		case '.':
-			pt.sentencecount++;
-			break;
-		case '?':
-			pt.sentencecount++;
-			break;
-		case '!':
-			pt.sentencecount++;
-			break;
+void InputProcesser::process_number(const string &word) {
+	++pt_.numbercount;
+	int num = stoi(word);
+	pt_.numbersum += num;
+}
 
+
+//process word
+void InputProcesser::process_word(const string& word) {
+	if (isdigit(word[0])) {
+		process_number(word);
+		return;
+	}
+	++pt_.wordcount;
+}
+
+//process input
+void InputProcesser::process(char c) {
+	++pt_.charcount;
+	if (isalnum(c)) {
+		empty_row_ = false;
+		empty_sentence_ = false;
+		is_word_ = true;
+		word_ += c;
+		return;
+	}
+	if (is_word_) {
+		process_word(word_);
+		is_word_ = false;
+		word_.clear();
+	}
+	switch (c) {
+		case EOL:
+			if (!empty_row_)
+				++pt_.rowcount;
+			empty_row_ = true;
+			break;
+		case DOT:
+		case QUESTION:
+		case EXCLAMATION:
+			if (!empty_sentence_)
+				++pt_.sentencecount;
+			empty_sentence_ = true;
+			break;
+		default:
+			break;
 	}
 
 }
@@ -57,11 +89,17 @@ void InputProcesser::process(char c) {
 // parsuje std::cin nebo fstream, vnitrek fce nerozlisuje je tam istream&
 void InputProcesser::fce(istream& s) {
 	char c;
-	string word;
 	for (;;) {
 		c = s.get();
-		//s >> word;
 		if (s.fail()) {
+			if (empty_row_)
+				return;
+			++pt_.rowcount;
+			if (is_word_) {
+				process_word(word_);
+				is_word_ = false;
+				word_.clear();
+			}
 			return;
 		}
 		process(c);
@@ -73,12 +111,12 @@ void InputProcesser::fce(istream& s) {
 //print output
 //vytiskne hodnoty ProcessText
 void InputProcesser::printoutput() {
-	println("Chars: {}", pt.charcout);
-	println("Rows: {}", pt.rowcount);
-	println("Words: {}", pt.wordcount);
-	println("Sentences: {}", pt.sentencecount);
-	println("Numbers: {}", pt.numbercount);
-	println("Sum: {}", pt.numbersum);
+	println("Chars: {}", pt_.charcount);
+	println("Rows: {}", pt_.rowcount);
+	println("Words: {}", pt_.wordcount);
+	println("Sentences: {}", pt_.sentencecount);
+	println("Numbers: {}", pt_.numbercount);
+	println("Sum: {}", pt_.numbersum);
 
 }
 

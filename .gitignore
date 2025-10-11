@@ -15,3 +15,5 @@ CMakeSettings.json
 # CLion / CMake build directories
 cmake-build-*/
 *.idea/
+
+*.DS_Store
