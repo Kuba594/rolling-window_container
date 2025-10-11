@@ -95,6 +95,8 @@ void InputProcesser::fce(istream& s) {
 			if (empty_row_)
 				return;
 			++pt_.rowcount;
+			empty_row_ = true;
+			empty_sentence_ = true;
 			if (is_word_) {
 				process_word(word_);
 				is_word_ = false;
