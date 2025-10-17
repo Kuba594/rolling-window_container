@@ -25,6 +25,7 @@ void InputProcesser::process_word(const string& word) {
 		process_number(word);
 		return;
 	}
+	empty_sentence_ = false;
 	++pt_.wordcount;
 }
 
@@ -33,7 +34,6 @@ void InputProcesser::process(char c) {
 	++pt_.charcount;
 	if (isalnum(c)) {
 		empty_row_ = false;
-		empty_sentence_ = false;
 		is_word_ = true;
 		word_ += c;
 		return;

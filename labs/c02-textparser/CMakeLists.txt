@@ -1,4 +1,4 @@
-add_executable(c02-textparser main.cpp)
+add_executable(c02-textparser main.cpp Counting.cpp Counting.h)
 
 # Zajistit C++23 i pro tuto labku
 set_property(TARGET c02-textparser PROPERTY CXX_STANDARD 23)

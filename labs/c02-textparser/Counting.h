@@ -17,13 +17,13 @@ private:
 	bool empty_row_ = true;
 	bool empty_sentence_ = true;
 	bool is_word_ = false;
-	string word_;
+	std::string word_;
 	ProcessedText pt_;
 	void process(char c);
-	void process_word(const string& word);
-	void process_number(const string& word);
+	void process_word(const std::string& word);
+	void process_number(const std::string& word);
 public:
-	void fce(istream& s);
+	void fce(std::istream& s);
 	void printoutput();
 
 };
