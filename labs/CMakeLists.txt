@@ -11,3 +11,4 @@ message(STATUS "CXX standard: ${CMAKE_CXX_STANDARD}")
 
 add_subdirectory(c01-nasobilka)
 add_subdirectory(c02-textparser)
+add_subdirectory(c03-frequencies)
