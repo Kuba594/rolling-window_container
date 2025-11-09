@@ -19,32 +19,17 @@ void slovnik::del(const string& word, const string& definition) {
 void slovnik::del(const string& word) {
     dict_.erase(word);
 }
-void slovnik::find(const string& word, ostream& os) const {
+const std::set<std::string>* slovnik::find(const string& word, ostream& os) const {
     auto it = dict_.find(word);
-    if (it != dict_.end()) {
-        const auto& defs = it->second;
-        for (auto dit = defs.begin(); dit != defs.end(); ++dit) {
-            if (dit != defs.begin()) os << ' ';
-            os << *dit;
-        }
-    }
-    os << '\n';
+    if (it == dict_.end()) return nullptr;
+    return &it->second;
 }
 
-void slovnik::prefix(const string& pref, std::ostream& os) const {
+pair<map<string, set<string>>::const_iterator, map<string, set<string>>::const_iterator> slovnik::prefix(const string& pref, std::ostream& os) const {
     auto it = dict_.lower_bound(pref);
-    bool first_word = true;
-
-    while (it != dict_.end() && it->first.starts_with(pref)) {
-        if (!first_word) os << '\n';
-        first_word = false;
-
-        os << it->first << ": ";
-        const auto& defs = it->second;
-        for (auto dit = defs.begin(); dit != defs.end(); ++dit) {
-            if (dit != defs.begin()) os << ' ';
-            os << *dit;
-        }
-        ++it;
+    auto end = it;
+    while (end != dict_.end() && end->first.starts_with(pref)) {
+        ++end;
     }
+    return {it, end};
 }

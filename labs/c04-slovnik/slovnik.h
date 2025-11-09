@@ -10,12 +10,10 @@ public:
     void add(const std::string& word, const std::string& definition);
     void del(const std::string& word, const std::string& definition);
     void del(const std::string& word);
-    void find(const std::string& slovo, std::ostream& os = std::cout) const;
-    void prefix(const std::string& prefix, std::ostream& os = std::cout) const;
+    const std::set<std::string>*  find(const std::string& slovo, std::ostream& os = std::cout) const;
+    std::pair<std::map<std::string, std::set<std::string>>::const_iterator, std::map<std::string, std::set<std::string>>::const_iterator> prefix(const std::string& prefix, std::ostream& os = std::cout) const;
 private:
     std::map<std::string, std::set<std::string>> dict_;
-    std::set<std::string> empty_;
-    std::map<std::string, std::set<std::string>> prefix_result_;
 };
 
 

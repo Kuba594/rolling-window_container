@@ -4,7 +4,18 @@
 
 class aplikace {
 private:
-    slovnik s_;
+    slovnik& s_;
+    std::istream &in_;
+    std::ostream &out_;
+    void add_word(std::istringstream &iss);
+    void del_word(std::istringstream &iss);
+    void print_find(std::istringstream &iss) const;
+    void print_prefix(std::istringstream &iss) const;
+public:
+    aplikace(slovnik &dict, std::istream &in = std::cin, std::ostream &out = std::cout)
+        : s_(dict), in_(in), out_(out) {}
+    void run();
+
 };
 
 
