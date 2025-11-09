@@ -17,3 +17,6 @@ cmake-build-*/
 *.idea/
 
 *.DS_Store
+
+#test data:
+*input.txt
