@@ -12,8 +12,7 @@ private:
     void print_find(std::istringstream &iss) const;
     void print_prefix(std::istringstream &iss) const;
 public:
-    aplikace(slovnik &dict, std::istream &in = std::cin, std::ostream &out = std::cout)
-        : s_(dict), in_(in), out_(out) {}
+    aplikace(slovnik &dict, std::istream &in = std::cin, std::ostream &out = std::cout);
     void run();
 
 };

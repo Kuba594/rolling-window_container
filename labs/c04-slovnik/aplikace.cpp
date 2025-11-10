@@ -1,7 +1,9 @@
 #include "aplikace.h"
 #include <sstream>
+#include <iostream>
 using namespace std;
 
+aplikace::aplikace(slovnik &dict, std::istream &in, std::ostream &out): s_(dict), in_(in), out_(out) {}
 void aplikace::run() {
     string line;
     while (getline(in_, line)) {
