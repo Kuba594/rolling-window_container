@@ -1,12 +1,14 @@
 #include <iostream>
-#include "makro.h"
+#include <string>
+#include <vector>
+#include "makroprocessor.h"
 using namespace std;
 
 int main(int argc, char ** argv) {
-    string s = "AHOJ";
-    string d = "CAU";
-    makro m(std::move(s), std::move(d));
-    m.print_definition();
-    cout << m;
+    vector<string> arg( argv+1, argv+argc);
+
+    makroprocessor x;
+    x.process_arg(arg);
+    x.read_input();
     return 0;
 }
