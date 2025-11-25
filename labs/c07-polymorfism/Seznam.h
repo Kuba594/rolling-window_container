@@ -13,7 +13,7 @@ public:
     void print();
     Seznam() {}
     Seznam( const Seznam& s) { clone( s); }
-    Seznam& operator=(const Seznam& s) { pole_.clear(); clone( s); return *this; }
+    Seznam& operator=(const Seznam& s) { if( this == &s)  return *this;pole_.clear(); clone( s); return *this; }
 private:
     void clone( const Seznam& s)
     { for( auto&& x : s.pole_) pole_.push_back( x->clone()); }

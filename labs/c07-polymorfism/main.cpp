@@ -10,5 +10,7 @@ int main(){
     Seznam s2;
     s2 = s;
     s2.print();
+    s2 = s2;
+    s2.print();
     return 0;
 }
