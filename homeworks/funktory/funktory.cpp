@@ -47,10 +47,14 @@ void ftor4::operator() (int& x) {
     prev_ = x;
 }
 
-ftor5::ftor5(int middle): middle_(middle) {}
+ftor5::ftor5(int n): n_(n), half_(n / 2) {}
 void ftor5::operator() (int& x) {
-    ++counter_;
-    if (counter_ < middle_) {
-        lower_sum += x;
+    if (idx_ < half_) {
+        vysledek.emplace_back(x*x);
     }
+    else if (idx_ >= (n_ - half_)) {
+        int offset = n_ - half_;
+        vysledek[idx_ - offset] += x * x;
+    }
+    idx_++;
 }

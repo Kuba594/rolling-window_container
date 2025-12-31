@@ -1,4 +1,4 @@
-add_executable(funktory main.cpp)
+add_executable(funktory main.cpp funktory.cpp funktory.h)
 
 # Zajistit C++23 i pro tuto labku
 set_property(TARGET funktory PROPERTY CXX_STANDARD 23)

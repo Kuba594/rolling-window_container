@@ -48,15 +48,17 @@ private:
     bool initialized_{false};
 };
 
+
 class ftor5 {
 public:
-    ftor5(int middle);
+    ftor5(int n);
     void operator() (int& x);
-    int lower_sum;
-    int upper_sum;
+    std::vector<int> vysledek;
+
 private:
-    int middle_;
-    int counter_{0};
+    int n_;
+    int half_;
+    int idx_{0};
 };
 
 #endif //CPP_HOMEWORKS_FUNKTORY_H
