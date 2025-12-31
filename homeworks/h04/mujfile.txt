@@ -1,0 +1,6 @@
+A#11#0#S3#0
+BBB#2##S1#
+CC#3#nic#S3#konec
+D#4#empty#S1#
+EE#5##S2#@$%^&*
+

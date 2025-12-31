@@ -12,4 +12,7 @@ message(STATUS "CXX standard: ${CMAKE_CXX_STANDARD}")
 add_subdirectory(h01)
 add_subdirectory(h02)
 add_subdirectory(h03)
+add_subdirectory(h04)
+add_subdirectory(h05)
+add_subdirectory(slovnik_extended)
 
