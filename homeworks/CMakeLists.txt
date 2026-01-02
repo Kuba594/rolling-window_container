@@ -16,4 +16,4 @@ add_subdirectory(h04)
 add_subdirectory(h05)
 add_subdirectory(slovnik_extended)
 add_subdirectory(funktory)
-
+add_subdirectory(polymorfni_kontejner)
