@@ -1,0 +1,29 @@
+Demo dokumentace:
+
+Pro sestavení je použit jeden soubor CMakeList.txt, který zajišťuje multiplatformnost pomocí nástroje CMake.
+
+Demo obsahuje:
+	- hlavičkový soubor kontejner.h, který deklaruje jednoduchou metodu ve třídě kontejner,
+
+	- source soubor kontejner.cpp, který obsahuje definici této metody; metoda pouze vypíše text Hello World na standardní výstup,
+
+	- soubor main.cpp, který nejprve vypíše Hello World! a následně zavolá metodu definovanou ve třídě kontejner.
+
+Pro zápočtový projekt jsou použity pouze standardní knihovny jazyka C++, bez závislosti na externích knihovnách.
+
+Návod pro sestavení projektu v Visual Studiu:
+- stačí otevřít projekt, buildnout, a spustit.
+
+Návod pro sestavní projektu pomocí cmake z příkazové řádky:
+V kořenovém adresáři projektu spusťte:
+
+- mkdir -p build
+- cd build
+- cmake ..
+- cmake --build .
+- ./projekt
+
+po vykonání těchto příkazů by měl uživatel vidět vypsáno:
+
+Hello World!
+Hello World!
