@@ -1,8 +1,9 @@
 #ifndef ROLLING_MATRIX_HPP
 #define ROLLING_MATRIX_HPP
 
-#include <iostream>
 #include <vector>
+#include <algorithm>
+#include <stdexcept>
 
 template <typename T>
 class RollingMatrix {
@@ -78,7 +79,7 @@ template<typename T>
 T& RollingMatrix<T>::at(size_type asset, size_type step) {
     if (asset >= n_assets_ || step >= filled_)
         throw std::out_of_range("RollingMatrix: index out of range");
-    return (*this)(asset, step);   // delegate to the unchecked version
+    return (*this)(asset, step);
 }
 
 template<typename T>
@@ -90,6 +91,23 @@ const T& RollingMatrix<T>::at(size_type asset, size_type step) const {
 //-----------------------------
 
 //-----------------------------
+template<typename T>
+void RollingMatrix<T>::push_column(const std::vector<T>& col) {
+    if (col.size() != n_assets_)
+        throw std::invalid_argument("RollingMatrix: column size mismatch");
+    size_type write_col;
+    if (!full()) {
+        write_col = (head_ + filled_); //% window_ není třeba modulo není full
+        ++filled_;
+    } else {
+        write_col = head_;
+        head_ = (head_ + 1) % window_;
+    }
+    std::copy(col.begin(), col.end(), data_.begin() + write_col * n_assets_);
+}
+
+template<typename T>
+void RollingMatrix<T>::clear() noexcept {head_ = 0; filled_ = 0;}
 
 //-----------------------------
 
