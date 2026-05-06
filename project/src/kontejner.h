@@ -32,4 +32,12 @@ private:
     std::vector<T> data_;
 };
 
+template<typename T>
+typename RollingMatrix<T>::size_type RollingMatrix<T>::rows() const noexcept {return n_assets_;}
+template<typename T>
+typename RollingMatrix<T>::size_type RollingMatrix<T>::cols() const noexcept { return filled_;}
+template<typename T>
+typename RollingMatrix<T>::size_type RollingMatrix<T>::capacity() const noexcept {return window_;}
+
+
 #endif // ROLLING_MATRIX_HPP
