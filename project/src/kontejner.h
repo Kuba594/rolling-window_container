@@ -18,15 +18,17 @@ public:
     bool empty() const noexcept;
     bool full() const noexcept;
 
-    T& operator()(size_type asset, size_type step);
-    const T& operator()(size_type asset, size_type step) const;
+    T& operator()(size_type asset, size_type step) noexcept;
+    const T& operator()(size_type asset, size_type step) const noexcept;
+    T& at(size_type asset, size_type step);
+    const T& at(size_type asset, size_type step) const;
 
     void push_column(const std::vector<T>& col);
     void clear() noexcept;
 
 private:
-    size_type n_assets_;
-    size_type window_;
+    size_type n_assets_; //number of all rows
+    size_type window_; //number of all columns
     size_type head_; //oldest column index
     size_type filled_;   //number of filled collumns
     std::vector<T> data_;
@@ -35,10 +37,19 @@ private:
 //-----------------------------
 template<typename T>
 typename RollingMatrix<T>::size_type RollingMatrix<T>::rows() const noexcept {return n_assets_;}
+
 template<typename T>
 typename RollingMatrix<T>::size_type RollingMatrix<T>::cols() const noexcept { return filled_;}
+
 template<typename T>
 typename RollingMatrix<T>::size_type RollingMatrix<T>::capacity() const noexcept {return window_;}
+
+template<typename T>
+bool RollingMatrix<T>::empty() const noexcept {return filled_ == 0;}
+
+template<typename T>
+bool RollingMatrix<T>::full() const noexcept {return filled_ == window_;}
+
 //-----------------------------
 
 //-----------------------------
@@ -48,6 +59,38 @@ window_(window), head_(0), filled_(0), data_(n_assets * window) {
     if (n_assets == 0 || window == 0)
         throw std::invalid_argument("RollingMatrix: dimensions must be > 0");
 }
+//-----------------------------
+
+//-----------------------------
+template<typename T>
+T& RollingMatrix<T>::operator()(size_type asset, size_type step) noexcept {
+    size_type physical_col = (head_ + step) % window_;
+    return data_[physical_col * n_assets_ + asset];
+}
+
+template<typename T>
+const T& RollingMatrix<T>::operator()(size_type asset, size_type step) const noexcept {
+    size_type physical_col = (head_ + step) % window_;
+    return data_[physical_col * n_assets_ + asset];
+}
+
+template<typename T>
+T& RollingMatrix<T>::at(size_type asset, size_type step) {
+    if (asset >= n_assets_ || step >= filled_)
+        throw std::out_of_range("RollingMatrix: index out of range");
+    return (*this)(asset, step);   // delegate to the unchecked version
+}
+
+template<typename T>
+const T& RollingMatrix<T>::at(size_type asset, size_type step) const {
+    if (asset >= n_assets_ || step >= filled_)
+        throw std::out_of_range("RollingMatrix: index out of range");
+    return (*this)(asset, step);
+}
+//-----------------------------
+
+//-----------------------------
+
 //-----------------------------
 
 #endif // ROLLING_MATRIX_HPP
