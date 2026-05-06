@@ -32,12 +32,22 @@ private:
     std::vector<T> data_;
 };
 
+//-----------------------------
 template<typename T>
 typename RollingMatrix<T>::size_type RollingMatrix<T>::rows() const noexcept {return n_assets_;}
 template<typename T>
 typename RollingMatrix<T>::size_type RollingMatrix<T>::cols() const noexcept { return filled_;}
 template<typename T>
 typename RollingMatrix<T>::size_type RollingMatrix<T>::capacity() const noexcept {return window_;}
+//-----------------------------
 
+//-----------------------------
+template<typename T>
+RollingMatrix<T>::RollingMatrix(size_type n_assets, size_type window) : n_assets_(n_assets),
+window_(window), head_(0), filled_(0), data_(n_assets * window) {
+    if (n_assets == 0 || window == 0)
+        throw std::invalid_argument("RollingMatrix: dimensions must be > 0");
+}
+//-----------------------------
 
 #endif // ROLLING_MATRIX_HPP
