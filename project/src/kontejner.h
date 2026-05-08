@@ -16,7 +16,6 @@ public:
     RollingMatrix(const RollingMatrix& other);                     //copy ctor
     RollingMatrix& operator=(RollingMatrix other);          //copy assign
     RollingMatrix(RollingMatrix&& other) noexcept = default;       //move ctor
-    //RollingMatrix& operator=(RollingMatrix&& other) noexcept = default; //move assign
     ~RollingMatrix() = default; //destructor
 
     size_type rows() const noexcept;

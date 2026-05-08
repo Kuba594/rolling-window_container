@@ -39,6 +39,8 @@ static int tests_failed = 0;
 
 // ===== tests =================================================================
 
+
+//basic functionality tests
 void test_constructor_basic() {
     RollingMatrix<double> m(3, 5);
     ASSERT(m.rows()     == 3);
@@ -139,6 +141,161 @@ void test_unchecked_operator_does_not_throw() {
     ASSERT(v == 1.0);
 }
 
+//copy ctor
+
+void test_copy_ctor_similar() {
+    RollingMatrix<double> a(2, 4);
+    a.push_column({1.0, 10.0});
+    a.push_column({2.0, 20.0});
+    a.push_column({3.0, 30.0});
+
+    RollingMatrix<double> b(a);
+
+    ASSERT(b.rows()     == a.rows());
+    ASSERT(b.cols()     == a.cols());
+    ASSERT(b.capacity() == a.capacity());
+    ASSERT(b(0, 0) == 1.0);
+    ASSERT(b(1, 1) == 20.0);
+    ASSERT(b(0, 2) == 3.0);
+}
+
+void test_copy_ctor_independence() {
+    RollingMatrix<double> a(2, 3);
+    a.push_column({1.0, 10.0});
+    a.push_column({2.0, 20.0});
+
+    RollingMatrix<double> b(a);
+
+    a.push_column({3.0, 30.0});
+    a.push_column({4.0, 40.0});
+
+    ASSERT(b.cols()  == 2);
+    ASSERT(b(0, 0) == 1.0);
+    ASSERT(b(0, 1) == 2.0);
+    ASSERT(a(0, 0) == 2.0);
+}
+
+void test_copy_ctor_after_rolling() {
+    RollingMatrix<double> a(2, 3);
+    a.push_column({1.0, 10.0});
+    a.push_column({2.0, 20.0});
+    a.push_column({3.0, 30.0});
+    a.push_column({4.0, 40.0});
+
+    RollingMatrix<double> b(a);
+
+    ASSERT(b.cols() == 3);
+    ASSERT(b(0, 0) == 2.0);
+    ASSERT(b(0, 1) == 3.0);
+    ASSERT(b(0, 2) == 4.0);
+    ASSERT(b(1, 2) == 40.0);
+}
+
+//copy assign
+
+void test_copy_assignment_independence() {
+    RollingMatrix<double> a(2, 3);
+    a.push_column({1.0, 10.0});
+    a.push_column({2.0, 20.0});
+
+    RollingMatrix<double> b(2, 3);
+    b.push_column({99.0, 999.0});
+
+    b = a;
+
+    ASSERT(b.cols() == 2);
+    ASSERT(b(0, 0) == 1.0);
+    ASSERT(b(1, 1) == 20.0);
+    ASSERT(a.cols() == 2);
+    ASSERT(a(0, 0) == 1.0);
+    ASSERT(a(1, 1) == 20.0);
+
+    a.push_column({3.0, 30.0});
+    ASSERT(a.cols() == 3);
+    ASSERT(b.cols() == 2);
+}
+
+void test_copy_assignment_self_assignment_safe() {
+    RollingMatrix<double> a(2, 3);
+    a.push_column({1.0, 10.0});
+    a.push_column({2.0, 20.0});
+
+    a = a;
+
+    ASSERT(a.cols() == 2);
+    ASSERT(a(0, 0) == 1.0);
+    ASSERT(a(1, 1) == 20.0);
+}
+
+void test_copy_assignment_different_dims() {
+    RollingMatrix<double> a(2, 3);
+    a.push_column({1.0, 10.0});
+
+    RollingMatrix<double> b(5, 7);
+    b.push_column({0,0,0,0,0});
+
+    b = a;
+    ASSERT(b.rows()     == 2);
+    ASSERT(b.capacity() == 3);
+    ASSERT(b.cols()     == 1);
+    ASSERT(b(0, 0) == 1.0);
+}
+
+//move ctor/assign
+
+void test_move_ctor_transfers() {
+    RollingMatrix<double> a(2, 3);
+    a.push_column({1.0, 10.0});
+    a.push_column({2.0, 20.0});
+
+    RollingMatrix<double> b(std::move(a));
+
+    ASSERT(b.cols()  == 2);
+    ASSERT(b(0, 0) == 1.0);
+    ASSERT(b(1, 1) == 20.0);
+}
+
+void test_move_assignment_transfers() {
+    RollingMatrix<double> a(2, 3);
+    a.push_column({1.0, 10.0});
+    a.push_column({2.0, 20.0});
+
+    RollingMatrix<double> b(2, 3);
+    b.push_column({99.0, 999.0});
+
+    b = std::move(a);
+
+    ASSERT(b.cols()  == 2);
+    ASSERT(b(0, 0) == 1.0);
+    ASSERT(b(1, 1) == 20.0);
+}
+
+//swap
+
+void test_swap_members() {
+    RollingMatrix<double> a(2, 3);
+    a.push_column({1.0, 10.0});
+    a.push_column({2.0, 20.0});
+
+    RollingMatrix<double> b(4, 5);
+    b.push_column({100, 200, 300, 400});
+
+    a.swap(b);
+
+    ASSERT(a.rows()     == 4);
+    ASSERT(a.capacity() == 5);
+    ASSERT(a.cols()     == 1);
+    ASSERT(a(0, 0) == 100);
+    ASSERT(a(3, 0) == 400);
+
+    ASSERT(b.rows()     == 2);
+    ASSERT(b.capacity() == 3);
+    ASSERT(b.cols()     == 2);
+    ASSERT(b(0, 0) == 1.0);
+    ASSERT(b(1, 1) == 20.0);
+}
+
+
 // ===== entry point ===========================================================
 
 int main() {
@@ -151,6 +308,19 @@ int main() {
     RUN_TEST(test_clear_resets_state);
     RUN_TEST(test_template_works_with_int);
     RUN_TEST(test_unchecked_operator_does_not_throw);
+
+    RUN_TEST(test_copy_ctor_similar);
+    RUN_TEST(test_copy_ctor_independence);
+    RUN_TEST(test_copy_ctor_after_rolling);
+
+    RUN_TEST(test_copy_assignment_independence);
+    RUN_TEST(test_copy_assignment_self_assignment_safe);
+    RUN_TEST(test_copy_assignment_different_dims);
+
+    RUN_TEST(test_move_ctor_transfers);
+    RUN_TEST(test_move_assignment_transfers);
+
+    RUN_TEST(test_swap_members);
 
     std::cout << "\n"
               << "Ran "    << tests_run     << " tests,  "
