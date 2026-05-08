@@ -4,6 +4,7 @@
 #include <vector>
 #include <algorithm>
 #include <stdexcept>
+#include <memory>
 
 template <typename T>
 class RollingMatrix {
@@ -12,6 +13,11 @@ public:
     using size_type  = std::size_t;
 
     RollingMatrix(size_type n_assets, size_type window);
+    RollingMatrix(const RollingMatrix& other);                     //copy ctor
+    RollingMatrix(RollingMatrix&& other) noexcept = default;       //move ctor
+    RollingMatrix& operator=(const RollingMatrix& other);          //copy assign
+    RollingMatrix& operator=(RollingMatrix&& other) noexcept = default; //move assign
+    ~RollingMatrix() = default; //destructor
 
     size_type rows() const noexcept;
     size_type cols() const noexcept;
@@ -26,13 +32,14 @@ public:
 
     void push_column(const std::vector<T>& col);
     void clear() noexcept;
+    void swap(RollingMatrix& other) noexcept;
 
 private:
     size_type n_assets_; //number of all rows
     size_type window_; //number of all columns
     size_type head_; //oldest column index
     size_type filled_;   //number of filled collumns
-    std::vector<T> data_;
+    std::unique_ptr<T[]> data_;
 };
 
 //-----------------------------
@@ -56,7 +63,7 @@ bool RollingMatrix<T>::full() const noexcept {return filled_ == window_;}
 //-----------------------------
 template<typename T>
 RollingMatrix<T>::RollingMatrix(size_type n_assets, size_type window) : n_assets_(n_assets),
-window_(window), head_(0), filled_(0), data_(n_assets * window) {
+window_(window), head_(0), filled_(0), data_(std::make_unique<T[]>(n_assets * window)) {
     if (n_assets == 0 || window == 0)
         throw std::invalid_argument("RollingMatrix: dimensions must be > 0");
 }
@@ -97,13 +104,13 @@ void RollingMatrix<T>::push_column(const std::vector<T>& col) {
         throw std::invalid_argument("RollingMatrix: column size mismatch");
     size_type write_col;
     if (!full()) {
-        write_col = (head_ + filled_); //% window_ není třeba modulo není full
+        write_col = (head_ + filled_); //% window_ není třeba modulo, není full
         ++filled_;
     } else {
         write_col = head_;
         head_ = (head_ + 1) % window_;
     }
-    std::copy(col.begin(), col.end(), data_.begin() + write_col * n_assets_);
+    std::copy(col.begin(), col.end(), data_.get() + write_col * n_assets_);
 }
 
 template<typename T>
