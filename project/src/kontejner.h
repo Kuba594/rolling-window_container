@@ -14,9 +14,9 @@ public:
 
     RollingMatrix(size_type n_assets, size_type window);
     RollingMatrix(const RollingMatrix& other);                     //copy ctor
+    RollingMatrix& operator=(RollingMatrix other);          //copy assign
     RollingMatrix(RollingMatrix&& other) noexcept = default;       //move ctor
-    RollingMatrix& operator=(const RollingMatrix& other);          //copy assign
-    RollingMatrix& operator=(RollingMatrix&& other) noexcept = default; //move assign
+    //RollingMatrix& operator=(RollingMatrix&& other) noexcept = default; //move assign
     ~RollingMatrix() = default; //destructor
 
     size_type rows() const noexcept;
@@ -67,6 +67,18 @@ window_(window), head_(0), filled_(0), data_(std::make_unique<T[]>(n_assets * wi
     if (n_assets == 0 || window == 0)
         throw std::invalid_argument("RollingMatrix: dimensions must be > 0");
 }
+
+template<typename T>
+RollingMatrix<T>::RollingMatrix(const RollingMatrix &other) : n_assets_(other.n_assets_), window_(other.window_), head_(other.head_),
+      filled_(other.filled_), data_(std::make_unique<T[]>(other.n_assets_ * other.window_)) {
+    std::copy(other.data_.get(), other.data_.get() + n_assets_ * window_,data_.get());
+}
+
+template<typename T>
+RollingMatrix<T>& RollingMatrix<T>::operator=(RollingMatrix other) {
+    swap(other);
+    return *this;
+}
 //-----------------------------
 
 //-----------------------------
@@ -116,6 +128,21 @@ void RollingMatrix<T>::push_column(const std::vector<T>& col) {
 template<typename T>
 void RollingMatrix<T>::clear() noexcept {head_ = 0; filled_ = 0;}
 
+template<typename T>
+void RollingMatrix<T>::swap(RollingMatrix& other) noexcept {
+    std::swap(this->data_, other.data_);
+    std::swap(this->n_assets_, other.n_assets_);
+    std::swap(this->window_, other.window_);
+    std::swap(this->head_, other.head_);
+    std::swap(this->filled_, other.filled_);
+}
+
 //-----------------------------
 
+//-----------------------------
+template<typename T>
+void swap(RollingMatrix<T>& a, RollingMatrix<T>& b) noexcept {
+    a.swap(b);
+}
+//-----------------------------
 #endif // ROLLING_MATRIX_HPP
