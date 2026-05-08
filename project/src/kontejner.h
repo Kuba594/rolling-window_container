@@ -143,5 +143,20 @@ template<typename T>
 void swap(RollingMatrix<T>& a, RollingMatrix<T>& b) noexcept {
     a.swap(b);
 }
+template <typename T>
+bool operator==(const RollingMatrix<T>& a, const RollingMatrix<T>& b) {
+    if (a.rows() != b.rows() || a.cols() != b.cols()) return false;
+    for (std::size_t s = 0; s < a.cols(); ++s) {
+        for (std::size_t r = 0; r < a.rows(); ++r) {
+            if (!(a(r, s) == b(r, s))) return false;
+        }
+    }
+    return true;
+}
+
+template <typename T>
+bool operator!=(const RollingMatrix<T>& a, const RollingMatrix<T>& b) {
+    return !(a == b);
+}
 //-----------------------------
 #endif // ROLLING_MATRIX_HPP
