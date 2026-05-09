@@ -394,7 +394,28 @@ void test_eq_sym() {
     ASSERT(b == a);
 }
 
+//column_view
+void test_column_view_size_read() {
+    double b[3] = {1.0, 2.0, 3.0};
+    RollingMatrix<double>::column_view v(b, 3);
 
+    ASSERT(v.size() == 3);
+    ASSERT(v[0] == 1.0);
+    ASSERT(v[1] == 2.0);
+    ASSERT(v[2] == 3.0);
+}
+
+void test_column_view_write() {
+    double b[3] = {1.0, 2.0, 3.0};
+    RollingMatrix<double>::column_view v(b, 3);
+
+    v[0] = 99.0;
+    v[2] = -5.5;
+
+    ASSERT(b[0] == 99.0);
+    ASSERT(b[1] == 2.0);
+    ASSERT(b[2] == -5.5);
+}
 
 // ===== entry point ===========================================================
 

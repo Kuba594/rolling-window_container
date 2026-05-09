@@ -32,14 +32,36 @@ public:
     void push_column(const std::vector<T>& col);
     void clear() noexcept;
     void swap(RollingMatrix& other) noexcept;
-
+    class column_view {
+        T*        col_data_;
+        size_type n_assets_;
+    public:
+        column_view(T* data, size_type n);
+        T&        operator[](size_type asset)       noexcept;
+        const T&  operator[](size_type asset) const noexcept;
+        size_type size() const noexcept;
+    };
 private:
     size_type n_assets_; //number of all rows
     size_type window_; //number of all columns
     size_type head_; //oldest column index
     size_type filled_;   //number of filled collumns
     std::unique_ptr<T[]> data_;
+
 };
+//-----------------------------
+template <typename T>
+T& RollingMatrix<T>::column_view::operator[](size_type asset) noexcept {return col_data_[asset];}
+
+template <typename T>
+const T& RollingMatrix<T>::column_view::operator[](size_type asset) const noexcept {return col_data_[asset];}
+
+template <typename T>
+typename RollingMatrix<T>::size_type RollingMatrix<T>::column_view::size() const noexcept {return n_assets_;}
+
+template <typename T>
+RollingMatrix<T>::column_view::column_view(T* data, size_type n) : col_data_(data), n_assets_(n) {}
+//-----------------------------
 
 //-----------------------------
 template<typename T>
