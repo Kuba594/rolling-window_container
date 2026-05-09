@@ -677,6 +677,258 @@ void test_iterator_empty_matrix() {
     for (auto col : m) { (void)col; ++count; }
     ASSERT(count == 0);                      // body never executes
 }
+
+// ===== NEW: const_column_view tests ==========================================
+
+void test_const_column_view_size_and_read() {
+    const double buf[3] = {1.0, 2.0, 3.0};
+    RollingMatrix<double>::const_column_view v(buf, 3);
+
+    ASSERT(v.size() == 3);
+    ASSERT(v[0] == 1.0);
+    ASSERT(v[1] == 2.0);
+    ASSERT(v[2] == 3.0);
+}
+
+void test_const_column_view_with_int_type() {
+    const int buf[2] = {42, 7};
+    RollingMatrix<int>::const_column_view v(buf, 2);
+    ASSERT(v.size() == 2);
+    ASSERT(v[0] == 42);
+    ASSERT(v[1] == 7);
+}
+
+// ===== NEW: const_column_iterator tests ======================================
+
+void test_const_iterator_begin_end_basic() {
+    RollingMatrix<double> m(2, 3);
+    const auto& cref = m;
+    ASSERT(cref.begin() == cref.end());      // empty const matrix
+    m.push_column({1.0, 10.0});
+    ASSERT(cref.begin() != cref.end());
+    ASSERT(cref.end() - cref.begin() == 1);
+}
+
+void test_const_iterator_distance_equals_cols() {
+    RollingMatrix<double> m(2, 5);
+    m.push_column({1.0, 10.0});
+    m.push_column({2.0, 20.0});
+    m.push_column({3.0, 30.0});
+
+    const auto& cref = m;
+    ASSERT(cref.end() - cref.begin() == 3);
+    ASSERT(std::distance(cref.begin(), cref.end()) == 3);
+}
+
+void test_const_iterator_dereference_yields_correct_column() {
+    RollingMatrix<double> m(2, 3);
+    m.push_column({1.0, 10.0});
+    m.push_column({2.0, 20.0});
+
+    const auto& cref = m;
+    auto it = cref.begin();
+    auto col0 = *it;
+    ASSERT(col0.size() == 2);
+    ASSERT(col0[0] == 1.0);
+    ASSERT(col0[1] == 10.0);
+
+    ++it;
+    auto col1 = *it;
+    ASSERT(col1[0] == 2.0);
+    ASSERT(col1[1] == 20.0);
+}
+
+void test_const_iterator_increment_decrement() {
+    RollingMatrix<double> m(2, 3);
+    m.push_column({1.0, 10.0});
+    m.push_column({2.0, 20.0});
+    m.push_column({3.0, 30.0});
+
+    const auto& cref = m;
+    auto it = cref.begin();
+    auto a  = *it++;
+    ASSERT(a[0] == 1.0);
+    ASSERT((*it)[0] == 2.0);
+
+    ++it;
+    ASSERT((*it)[0] == 3.0);
+
+    auto b = *it--;
+    ASSERT(b[0] == 3.0);
+    ASSERT((*it)[0] == 2.0);
+}
+
+void test_const_iterator_random_access_arithmetic() {
+    RollingMatrix<double> m(2, 4);
+    m.push_column({1.0, 10.0});
+    m.push_column({2.0, 20.0});
+    m.push_column({3.0, 30.0});
+    m.push_column({4.0, 40.0});
+
+    const auto& cref = m;
+    auto it = cref.begin();
+
+    ASSERT((*(it + 2))[0] == 3.0);
+    ASSERT(((it + 3) - it) == 3);
+    ASSERT((*(it + 1 + 2))[0] == 4.0);
+
+    auto it2 = it + 3;
+    ASSERT((*(it2 - 2))[0] == (*(it + 1))[0]);
+    ASSERT(it2[-1][0]      == (*(it + 2))[0]);
+}
+
+void test_const_iterator_subscript_operator() {
+    RollingMatrix<double> m(2, 3);
+    m.push_column({1.0, 10.0});
+    m.push_column({2.0, 20.0});
+    m.push_column({3.0, 30.0});
+
+    const auto& cref = m;
+    auto it = cref.begin();
+    ASSERT(it[0][0] == 1.0);
+    ASSERT(it[1][0] == 2.0);
+    ASSERT(it[2][0] == 3.0);
+    ASSERT(it[2][1] == 30.0);
+}
+
+void test_const_iterator_compound_assignment() {
+    RollingMatrix<double> m(2, 4);
+    m.push_column({1.0, 10.0});
+    m.push_column({2.0, 20.0});
+    m.push_column({3.0, 30.0});
+    m.push_column({4.0, 40.0});
+
+    const auto& cref = m;
+    auto it = cref.begin();
+    it += 2;
+    ASSERT((*it)[0] == 3.0);
+
+    it -= 1;
+    ASSERT((*it)[0] == 2.0);
+}
+
+void test_const_iterator_comparison_operators() {
+    RollingMatrix<double> m(2, 4);
+    m.push_column({1.0, 10.0});
+    m.push_column({2.0, 20.0});
+    m.push_column({3.0, 30.0});
+
+    const auto& cref = m;
+    auto a = cref.begin();
+    auto b = cref.begin() + 1;
+
+    ASSERT(a < b);
+    ASSERT(a <= b);
+    ASSERT(b > a);
+    ASSERT(b >= a);
+    ASSERT(a != b);
+    ASSERT(!(a == b));
+
+    auto c = cref.begin();
+    ASSERT(a == c);
+    ASSERT(a <= c);
+    ASSERT(a >= c);
+    ASSERT(!(a < c));
+}
+
+void test_const_iterator_after_rolling() {
+    RollingMatrix<double> m(2, 3);
+    m.push_column({1.0, 10.0});
+    m.push_column({2.0, 20.0});
+    m.push_column({3.0, 30.0});
+    m.push_column({4.0, 40.0});             // evicts {1, 10}; head_ = 1
+
+    const auto& cref = m;
+    auto it = cref.begin();
+    ASSERT((*it)[0]      == 2.0);            // oldest after rolling
+    ASSERT((*(it + 1))[0] == 3.0);
+    ASSERT((*(it + 2))[0] == 4.0);
+    ASSERT(it + 3 == cref.end());
+}
+
+void test_const_iterator_range_for_on_const_matrix() {
+    RollingMatrix<double> m(2, 3);
+    m.push_column({1.0, 10.0});
+    m.push_column({2.0, 20.0});
+    m.push_column({3.0, 30.0});
+
+    const auto& cref = m;
+    double sum0 = 0;
+    double sum1 = 0;
+    std::size_t count = 0;
+    for (auto col : cref) {                  // ranges over const matrix
+        sum0 += col[0];
+        sum1 += col[1];
+        ++count;
+    }
+    ASSERT(count == 3);
+    ASSERT(sum0  == 6.0);
+    ASSERT(sum1  == 60.0);
+}
+
+void test_const_iterator_works_with_std_algorithms() {
+    RollingMatrix<double> m(2, 3);
+    m.push_column({1.0, 10.0});
+    m.push_column({2.0, 20.0});
+    m.push_column({3.0, 30.0});
+
+    const auto& cref = m;
+    double sum = std::accumulate(
+        cref.begin(), cref.end(), 0.0,
+        [](double acc, RollingMatrix<double>::const_column_view col) {
+            return acc + col[0];
+        });
+    ASSERT(sum == 6.0);
+
+    auto it = std::find_if(cref.begin(), cref.end(),
+        [](RollingMatrix<double>::const_column_view col) {
+            return col[0] == 2.0;
+        });
+    ASSERT(it != cref.end());
+    ASSERT((*it)[1] == 20.0);
+}
+
+void test_const_iterator_empty_const_matrix() {
+    RollingMatrix<double> m(2, 3);
+    const auto& cref = m;
+    ASSERT(cref.begin() == cref.end());
+    ASSERT(std::distance(cref.begin(), cref.end()) == 0);
+
+    std::size_t count = 0;
+    for (auto col : cref) { (void)col; ++count; }
+    ASSERT(count == 0);
+}
+
+void test_cbegin_cend_returns_const_iterator() {
+    RollingMatrix<double> m(2, 3);
+    m.push_column({1.0, 10.0});
+    m.push_column({2.0, 20.0});
+
+    auto it = m.cbegin();                    // const_iterator from non-const matrix
+    static_assert(
+        std::is_same<decltype(it), RollingMatrix<double>::const_column_iterator>::value,
+        "cbegin must return const_column_iterator");
+
+    ASSERT((*it)[0] == 1.0);
+    ASSERT(m.cend() - m.cbegin() == 2);
+    ASSERT(std::distance(m.cbegin(), m.cend()) == 2);
+}
+
+void test_const_iterator_passed_to_function_taking_const_ref() {
+    // Common real-world use: a stats function taking const RollingMatrix&
+    auto sum_first_asset = [](const RollingMatrix<double>& m) {
+        double s = 0;
+        for (auto col : m) s += col[0];      // requires const begin()/end()
+        return s;
+    };
+
+    RollingMatrix<double> m(2, 3);
+    m.push_column({1.0, 10.0});
+    m.push_column({2.0, 20.0});
+    m.push_column({3.0, 30.0});
+
+    ASSERT(sum_first_asset(m) == 6.0);
+}
 // ===== entry point ===========================================================
 
 int main() {
@@ -729,6 +981,26 @@ int main() {
     RUN_TEST(test_iterator_range_for_loop);
     RUN_TEST(test_iterator_works_with_std_algorithms);
     RUN_TEST(test_iterator_empty_matrix);
+
+    // const_column_view
+    RUN_TEST(test_const_column_view_size_and_read);
+    RUN_TEST(test_const_column_view_with_int_type);
+
+    // const_column_iterator
+    RUN_TEST(test_const_iterator_begin_end_basic);
+    RUN_TEST(test_const_iterator_distance_equals_cols);
+    RUN_TEST(test_const_iterator_dereference_yields_correct_column);
+    RUN_TEST(test_const_iterator_increment_decrement);
+    RUN_TEST(test_const_iterator_random_access_arithmetic);
+    RUN_TEST(test_const_iterator_subscript_operator);
+    RUN_TEST(test_const_iterator_compound_assignment);
+    RUN_TEST(test_const_iterator_comparison_operators);
+    RUN_TEST(test_const_iterator_after_rolling);
+    RUN_TEST(test_const_iterator_range_for_on_const_matrix);
+    RUN_TEST(test_const_iterator_works_with_std_algorithms);
+    RUN_TEST(test_const_iterator_empty_const_matrix);
+    RUN_TEST(test_cbegin_cend_returns_const_iterator);
+    RUN_TEST(test_const_iterator_passed_to_function_taking_const_ref);
 
     std::cout << "\n"
               << "Ran "    << tests_run     << " tests,  "
