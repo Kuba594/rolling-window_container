@@ -10,4 +10,5 @@ message(STATUS "Using CXX compiler: ${CMAKE_CXX_COMPILER}")
 message(STATUS "CXX standard: ${CMAKE_CXX_STANDARD}")
 
 add_executable(project src/main.cpp)
-add_executable(tests tests/testy.cpp)
+add_executable(tests tests/testy.cpp
+)

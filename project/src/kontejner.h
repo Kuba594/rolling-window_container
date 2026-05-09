@@ -24,6 +24,12 @@ public:
     bool empty() const noexcept;
     bool full() const noexcept;
 
+    class column_iterator;
+    column_iterator begin();
+
+    column_iterator end();
+
+
     T& operator()(size_type asset, size_type step) noexcept;
     const T& operator()(size_type asset, size_type step) const noexcept;
     T& at(size_type asset, size_type step);
@@ -49,6 +55,149 @@ private:
     std::unique_ptr<T[]> data_;
 
 };
+//-----------------------------
+template<typename T>
+class RollingMatrix<T>::column_iterator {
+public:
+    using iterator_category = std::random_access_iterator_tag;
+    using value_type        = column_view;
+    using difference_type   = std::ptrdiff_t;
+    using pointer           = column_view*;
+    using reference         = column_view;
+
+    column_iterator() noexcept;
+    column_iterator(RollingMatrix* m, size_type step) noexcept;
+
+    column_view operator*() const noexcept;
+    column_view operator[](difference_type n) const noexcept;
+
+    column_iterator& operator++()    noexcept;
+    column_iterator  operator++(int) noexcept;
+    column_iterator& operator--()    noexcept;
+    column_iterator  operator--(int) noexcept;
+
+    column_iterator& operator+=(difference_type n) noexcept;
+    column_iterator& operator-=(difference_type n) noexcept;
+    column_iterator  operator+ (difference_type n) const noexcept;
+    column_iterator  operator- (difference_type n) const noexcept;
+    difference_type  operator- (const column_iterator& other) const noexcept;
+
+    bool operator==(const column_iterator& o) const noexcept;
+    bool operator!=(const column_iterator& o) const noexcept;
+    bool operator< (const column_iterator& o) const noexcept;
+    bool operator<=(const column_iterator& o) const noexcept;
+    bool operator> (const column_iterator& o) const noexcept;
+    bool operator>=(const column_iterator& o) const noexcept;
+
+private:
+    RollingMatrix* matrix_;
+    size_type step_;
+};
+template<typename T>
+RollingMatrix<T>::column_iterator::column_iterator() noexcept
+    : matrix_(nullptr), step_(0) {}
+
+template<typename T>
+RollingMatrix<T>::column_iterator::column_iterator(RollingMatrix* m, size_type step) noexcept
+    : matrix_(m), step_(step) {}
+//
+template<typename T>
+typename RollingMatrix<T>::column_view RollingMatrix<T>::column_iterator::operator*() const noexcept {
+    size_type step = (matrix_->head_ + step_) % matrix_->window_;
+    return column_view{
+        matrix_->data_.get() + step * matrix_->n_assets_,
+        matrix_->n_assets_
+    };
+}
+
+template<typename T>
+typename RollingMatrix<T>::column_view RollingMatrix<T>::column_iterator::operator[](difference_type n) const noexcept {
+    return *(*this + n);
+}
+//
+template<typename T>
+typename RollingMatrix<T>::column_iterator RollingMatrix<T>::begin() {
+    return column_iterator(this, 0);
+}
+
+template<typename T>
+typename RollingMatrix<T>::column_iterator RollingMatrix<T>::end() {
+    return column_iterator(this, filled_);
+}
+
+template<typename T>
+typename RollingMatrix<T>::column_iterator& RollingMatrix<T>::column_iterator::operator++() noexcept {
+    ++step_;
+    return *this;
+}
+template<typename T>
+typename RollingMatrix<T>::column_iterator RollingMatrix<T>::column_iterator::operator++(int) noexcept {
+    column_iterator tmp = *this;
+    ++step_;
+    return tmp;
+}
+template<typename T>
+typename RollingMatrix<T>::column_iterator& RollingMatrix<T>::column_iterator::operator--() noexcept {
+    --step_;
+    return *this;
+}
+template<typename T>
+typename RollingMatrix<T>::column_iterator RollingMatrix<T>::column_iterator::operator--(int) noexcept {
+    column_iterator tmp = *this;
+    --step_;
+    return tmp;
+}
+//
+
+template<typename T>
+typename RollingMatrix<T>::column_iterator& RollingMatrix<T>::column_iterator::operator+=(difference_type n) noexcept {
+    step_ = static_cast<size_type>(static_cast<difference_type>(step_) + n);
+    return *this;
+}
+template<typename T>
+typename RollingMatrix<T>::column_iterator& RollingMatrix<T>::column_iterator::operator-=(difference_type n) noexcept {
+    step_ = static_cast<size_type>(static_cast<difference_type>(step_) - n);
+    return *this;
+}
+template<typename T>
+typename RollingMatrix<T>::column_iterator RollingMatrix<T>::column_iterator::operator+(difference_type n)const noexcept {
+    column_iterator tmp = *this;
+    tmp += n;
+    return tmp;
+}
+template<typename T>
+typename RollingMatrix<T>::column_iterator RollingMatrix<T>::column_iterator::operator-(difference_type n) const noexcept {
+    column_iterator tmp = *this;
+    tmp -= n;
+    return tmp;
+}
+template<typename T>
+typename RollingMatrix<T>::column_iterator::difference_type RollingMatrix<T>::column_iterator::operator-(const column_iterator& n) const noexcept {
+    return static_cast<difference_type>(step_) - static_cast<difference_type>(n.step_);
+}
+//
+
+template<typename T>
+bool RollingMatrix<T>::column_iterator::operator==(const column_iterator& o) const noexcept {return matrix_ == o.matrix_ && step_ == o.step_;}
+
+template<typename T>
+bool RollingMatrix<T>::column_iterator::operator!=(const column_iterator& o) const noexcept {return !(*this == o);}
+
+template<typename T>
+bool RollingMatrix<T>::column_iterator::operator<=(const column_iterator& o) const noexcept {return matrix_ == o.matrix_ && step_ <= o.step_;}
+
+template<typename T>
+bool RollingMatrix<T>::column_iterator::operator>=(const column_iterator& o) const noexcept {return matrix_ == o.matrix_ && step_ >= o.step_;}
+
+template<typename T>
+bool RollingMatrix<T>::column_iterator::operator<(const column_iterator& o) const noexcept {return matrix_ == o.matrix_ && step_ < o.step_;}
+
+template<typename T>
+bool RollingMatrix<T>::column_iterator::operator>(const column_iterator& o) const noexcept {return matrix_ == o.matrix_ && step_ > o.step_;}
+
+
+//-----------------------------
+
 //-----------------------------
 template <typename T>
 T& RollingMatrix<T>::column_view::operator[](size_type asset) noexcept {return col_data_[asset];}

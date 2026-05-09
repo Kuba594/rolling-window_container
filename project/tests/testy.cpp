@@ -1,6 +1,10 @@
 #include "../src/kontejner.h"
 #include <iostream>
 #include <stdexcept>
+#include <utility>
+#include <iterator>
+#include <numeric>
+#include <algorithm>
 
 // ===== minimal in-house test runner (no external deps) =======================
 
@@ -417,6 +421,262 @@ void test_column_view_write() {
     ASSERT(b[2] == -5.5);
 }
 
+
+void test_column_view_size_and_read() {
+    double buf[3] = {1.0, 2.0, 3.0};
+    RollingMatrix<double>::column_view v(buf, 3);
+
+    ASSERT(v.size() == 3);
+    ASSERT(v[0] == 1.0);
+    ASSERT(v[1] == 2.0);
+    ASSERT(v[2] == 3.0);
+}
+
+void test_column_view_write_mutates_buffer() {
+    double buf[3] = {1.0, 2.0, 3.0};
+    RollingMatrix<double>::column_view v(buf, 3);
+
+    v[0] = 99.0;
+    v[2] = -5.5;
+
+    ASSERT(buf[0] == 99.0);          // view writes through to underlying buffer
+    ASSERT(buf[1] == 2.0);           // untouched
+    ASSERT(buf[2] == -5.5);
+}
+
+void test_column_view_const_returns_const_ref() {
+    double buf[2] = {10.0, 20.0};
+    const RollingMatrix<double>::column_view v(buf, 2);   // view itself is const
+
+    ASSERT(v[0] == 10.0);
+    ASSERT(v[1] == 20.0);
+    ASSERT(v.size() == 2);
+
+    // The following must NOT compile (uncomment to verify):
+    // v[0] = 99.0;   // error: assignment to const reference
+}
+
+void test_column_view_zero_size() {
+    // Edge case: zero-length view (degenerate but should not crash)
+    double dummy = 0;
+    RollingMatrix<double>::column_view v(&dummy, 0);
+    ASSERT(v.size() == 0);
+}
+
+void test_column_view_with_int_type() {
+    int buf[4] = {7, 8, 9, 10};
+    RollingMatrix<int>::column_view v(buf, 4);
+    ASSERT(v.size() == 4);
+    ASSERT(v[0] == 7);
+    ASSERT(v[3] == 10);
+    v[2] = 999;
+    ASSERT(buf[2] == 999);
+}
+
+void test_column_view_independent_from_matrix() {
+    // Verify a column_view we built ourselves doesn't depend on a RollingMatrix.
+    // It just wraps a raw pointer — that's the whole design.
+    std::vector<double> data = {1.1, 2.2, 3.3, 4.4, 5.5};
+    RollingMatrix<double>::column_view v(data.data() + 1, 3);   // points at &data[1]
+    ASSERT(v.size() == 3);
+    ASSERT(v[0] == 2.2);
+    ASSERT(v[1] == 3.3);
+    ASSERT(v[2] == 4.4);
+}
+
+// ===== NEW: column_iterator tests ============================================
+
+void test_iterator_begin_end_basic() {
+    RollingMatrix<double> m(2, 3);
+    ASSERT(m.begin() == m.end());          // empty: begin == end
+
+    m.push_column({1.0, 10.0});
+    ASSERT(m.begin() != m.end());          // one column: begin != end
+    ASSERT(m.end() - m.begin() == 1);
+}
+
+void test_iterator_distance_equals_cols() {
+    RollingMatrix<double> m(2, 5);
+    m.push_column({1.0, 10.0});
+    m.push_column({2.0, 20.0});
+    m.push_column({3.0, 30.0});
+
+    ASSERT(m.end() - m.begin() == 3);
+    ASSERT(std::distance(m.begin(), m.end()) == 3);
+}
+
+void test_iterator_dereference_yields_correct_column() {
+    RollingMatrix<double> m(2, 3);
+    m.push_column({1.0, 10.0});
+    m.push_column({2.0, 20.0});
+
+    auto it = m.begin();
+    auto col0 = *it;
+    ASSERT(col0.size() == 2);
+    ASSERT(col0[0] == 1.0);
+    ASSERT(col0[1] == 10.0);
+
+    ++it;
+    auto col1 = *it;
+    ASSERT(col1[0] == 2.0);
+    ASSERT(col1[1] == 20.0);
+}
+
+void test_iterator_increment_decrement() {
+    RollingMatrix<double> m(2, 3);
+    m.push_column({1.0, 10.0});
+    m.push_column({2.0, 20.0});
+    m.push_column({3.0, 30.0});
+
+    auto it = m.begin();
+    auto a  = *it++;                       // postfix: returns old, advances
+    ASSERT(a[0] == 1.0);
+    ASSERT((*it)[0] == 2.0);
+
+    ++it;                                  // prefix: advances first
+    ASSERT((*it)[0] == 3.0);
+
+    auto b = *it--;                        // postfix decrement
+    ASSERT(b[0] == 3.0);
+    ASSERT((*it)[0] == 2.0);
+}
+
+void test_iterator_random_access_arithmetic() {
+    RollingMatrix<double> m(2, 4);
+    m.push_column({1.0, 10.0});
+    m.push_column({2.0, 20.0});
+    m.push_column({3.0, 30.0});
+    m.push_column({4.0, 40.0});
+
+    auto it = m.begin();
+
+    ASSERT((*(it + 2))[0] == 3.0);          // it + n
+    ASSERT(((it + 3) - it) == 3);           // it - it
+    ASSERT((*(it + 1 + 2))[0] == 4.0);
+
+    auto it2 = it + 3;
+    ASSERT((*(it2 - 2))[0] == (*(it + 1))[0]);   // it - n: compare contents
+    ASSERT(it2[-1][0]      == (*(it + 2))[0]);    // negative subscript
+}
+
+void test_iterator_subscript_operator() {
+    RollingMatrix<double> m(2, 3);
+    m.push_column({1.0, 10.0});
+    m.push_column({2.0, 20.0});
+    m.push_column({3.0, 30.0});
+
+    auto it = m.begin();
+    ASSERT(it[0][0] == 1.0);                // it[n] same as *(it + n)
+    ASSERT(it[1][0] == 2.0);
+    ASSERT(it[2][0] == 3.0);
+    ASSERT(it[2][1] == 30.0);
+}
+
+void test_iterator_compound_assignment() {
+    RollingMatrix<double> m(2, 4);
+    m.push_column({1.0, 10.0});
+    m.push_column({2.0, 20.0});
+    m.push_column({3.0, 30.0});
+    m.push_column({4.0, 40.0});
+
+    auto it = m.begin();
+    it += 2;
+    ASSERT((*it)[0] == 3.0);
+
+    it -= 1;
+    ASSERT((*it)[0] == 2.0);
+}
+
+void test_iterator_comparison_operators() {
+    RollingMatrix<double> m(2, 4);
+    m.push_column({1.0, 10.0});
+    m.push_column({2.0, 20.0});
+    m.push_column({3.0, 30.0});
+
+    auto a = m.begin();
+    auto b = m.begin() + 1;
+
+    ASSERT(a < b);
+    ASSERT(a <= b);
+    ASSERT(b > a);
+    ASSERT(b >= a);
+    ASSERT(a != b);
+    ASSERT(!(a == b));
+
+    auto c = m.begin();
+    ASSERT(a == c);
+    ASSERT(a <= c);
+    ASSERT(a >= c);
+    ASSERT(!(a < c));
+}
+
+void test_iterator_after_rolling() {
+    // The most important test: when head_ != 0, the iterator must still
+    // walk in chronological order.
+    RollingMatrix<double> m(2, 3);
+    m.push_column({1.0, 10.0});
+    m.push_column({2.0, 20.0});
+    m.push_column({3.0, 30.0});
+    m.push_column({4.0, 40.0});             // evicts {1, 10}; head_ now 1
+
+    auto it = m.begin();                     // points to oldest = {2, 20}
+    ASSERT((*it)[0]      == 2.0);
+    ASSERT((*(it + 1))[0] == 3.0);
+    ASSERT((*(it + 2))[0] == 4.0);
+    ASSERT(it + 3 == m.end());
+}
+
+void test_iterator_range_for_loop() {
+    RollingMatrix<double> m(2, 3);
+    m.push_column({1.0, 10.0});
+    m.push_column({2.0, 20.0});
+    m.push_column({3.0, 30.0});
+
+    double sum0 = 0;       // sum of asset 0 across columns
+    double sum1 = 0;       // sum of asset 1 across columns
+    std::size_t count = 0;
+    for (auto col : m) {
+        sum0 += col[0];
+        sum1 += col[1];
+        ++count;
+    }
+    ASSERT(count == 3);
+    ASSERT(sum0  == 6.0);    // 1 + 2 + 3
+    ASSERT(sum1  == 60.0);   // 10 + 20 + 30
+}
+
+void test_iterator_works_with_std_algorithms() {
+    RollingMatrix<double> m(2, 3);
+    m.push_column({1.0, 10.0});
+    m.push_column({2.0, 20.0});
+    m.push_column({3.0, 30.0});
+
+    // std::accumulate over columns, summing asset[0]
+    double sum = std::accumulate(
+        m.begin(), m.end(), 0.0,
+        [](double acc, RollingMatrix<double>::column_view col) {
+            return acc + col[0];
+        });
+    ASSERT(sum == 6.0);
+
+    // std::find_if to find a specific column
+    auto it = std::find_if(m.begin(), m.end(),
+        [](RollingMatrix<double>::column_view col) {
+            return col[0] == 2.0;
+        });
+    ASSERT(it != m.end());
+    ASSERT((*it)[1] == 20.0);
+}
+
+void test_iterator_empty_matrix() {
+    RollingMatrix<double> m(2, 3);
+    ASSERT(m.begin() == m.end());
+    ASSERT(std::distance(m.begin(), m.end()) == 0);
+
+    std::size_t count = 0;
+    for (auto col : m) { (void)col; ++count; }
+    ASSERT(count == 0);                      // body never executes
+}
 // ===== entry point ===========================================================
 
 int main() {
@@ -449,6 +709,26 @@ int main() {
     RUN_TEST(test_self_eq);
     RUN_TEST(test_eq_copy);
     RUN_TEST(test_eq_sym);
+
+    RUN_TEST(test_column_view_size_and_read);
+    RUN_TEST(test_column_view_write_mutates_buffer);
+    RUN_TEST(test_column_view_const_returns_const_ref);
+    RUN_TEST(test_column_view_zero_size);
+    RUN_TEST(test_column_view_with_int_type);
+    RUN_TEST(test_column_view_independent_from_matrix);
+
+    RUN_TEST(test_iterator_begin_end_basic);
+    RUN_TEST(test_iterator_distance_equals_cols);
+    RUN_TEST(test_iterator_dereference_yields_correct_column);
+    RUN_TEST(test_iterator_increment_decrement);
+    RUN_TEST(test_iterator_random_access_arithmetic);
+    RUN_TEST(test_iterator_subscript_operator);
+    RUN_TEST(test_iterator_compound_assignment);
+    RUN_TEST(test_iterator_comparison_operators);
+    RUN_TEST(test_iterator_after_rolling);
+    RUN_TEST(test_iterator_range_for_loop);
+    RUN_TEST(test_iterator_works_with_std_algorithms);
+    RUN_TEST(test_iterator_empty_matrix);
 
     std::cout << "\n"
               << "Ran "    << tests_run     << " tests,  "
