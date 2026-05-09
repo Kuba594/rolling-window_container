@@ -294,6 +294,106 @@ void test_swap_members() {
     ASSERT(b(0, 0) == 1.0);
     ASSERT(b(1, 1) == 20.0);
 }
+//== and != tests
+
+void test_eq_empty_matrices() {
+    RollingMatrix<double> a(2, 3);
+    RollingMatrix<double> b(2, 3);
+    ASSERT(a == b);
+    ASSERT(!(a != b));
+}
+
+void test_eq_same_inside() {
+    RollingMatrix<double> a(2, 3);
+    a.push_column({1.0, 10.0});
+    a.push_column({2.0, 20.0});
+
+    RollingMatrix<double> b(2, 3);
+    b.push_column({1.0, 10.0});
+    b.push_column({2.0, 20.0});
+
+    ASSERT(a == b);
+    ASSERT(!(a != b));
+}
+
+void test_ineq_different_dims() {
+    RollingMatrix<double> a(2, 3);
+    RollingMatrix<double> b(3, 3);
+    ASSERT(a != b);
+    ASSERT(!(a == b));
+}
+
+void test_ineq_diff_cols_inside_size() {
+    RollingMatrix<double> a(2, 3);
+    a.push_column({1.0, 10.0});
+
+    RollingMatrix<double> b(2, 3);
+    b.push_column({1.0, 10.0});
+    b.push_column({2.0, 20.0});
+
+    ASSERT(a != b);
+}
+
+void test_ineq_diff_values() {
+    RollingMatrix<double> a(2, 3);
+    a.push_column({1.0, 10.0});
+    a.push_column({2.0, 20.0});
+
+    RollingMatrix<double> b(2, 3);
+    b.push_column({1.0, 10.0});
+    b.push_column({2.0, 19.0});
+
+    ASSERT(a != b);
+    ASSERT(!(a == b));
+}
+
+void test_eq_after_rolling() {
+    RollingMatrix<double> a(2, 3);
+    a.push_column({1.0, 10.0});
+    a.push_column({2.0, 20.0});
+    a.push_column({3.0, 30.0});
+    a.push_column({4.0, 40.0});
+
+    RollingMatrix<double> b(2, 3);
+    b.push_column({2.0, 20.0});
+    b.push_column({3.0, 30.0});
+    b.push_column({4.0, 40.0});
+
+    ASSERT(a == b);
+}
+
+void test_self_eq() {
+    RollingMatrix<double> a(2, 3);
+    a.push_column({1.0, 10.0});
+    a.push_column({2.0, 20.0});
+    ASSERT(a == a);
+    ASSERT(!(a != a));
+}
+
+void test_eq_copy() {
+    RollingMatrix<double> a(2, 3);
+    a.push_column({1.0, 10.0});
+    a.push_column({2.0, 20.0});
+
+    RollingMatrix<double> b(a);
+    ASSERT(a == b);
+
+    RollingMatrix<double> c(2, 3);
+    c = a;
+    ASSERT(a == c);
+}
+
+void test_eq_sym() {
+    RollingMatrix<double> a(2, 3);
+    a.push_column({1.0, 10.0});
+
+    RollingMatrix<double> b(2, 3);
+    b.push_column({1.0, 10.0});
+
+    ASSERT(a == b);
+    ASSERT(b == a);
+}
+
 
 
 // ===== entry point ===========================================================
@@ -312,15 +412,22 @@ int main() {
     RUN_TEST(test_copy_ctor_similar);
     RUN_TEST(test_copy_ctor_independence);
     RUN_TEST(test_copy_ctor_after_rolling);
-
     RUN_TEST(test_copy_assignment_independence);
     RUN_TEST(test_copy_assignment_self_assignment_safe);
     RUN_TEST(test_copy_assignment_different_dims);
-
     RUN_TEST(test_move_ctor_transfers);
     RUN_TEST(test_move_assignment_transfers);
-
     RUN_TEST(test_swap_members);
+
+    RUN_TEST(test_eq_empty_matrices);
+    RUN_TEST(test_eq_same_inside);
+    RUN_TEST(test_ineq_different_dims);
+    RUN_TEST(test_ineq_diff_cols_inside_size);
+    RUN_TEST(test_ineq_diff_values);
+    RUN_TEST(test_eq_after_rolling);
+    RUN_TEST(test_self_eq);
+    RUN_TEST(test_eq_copy);
+    RUN_TEST(test_eq_sym);
 
     std::cout << "\n"
               << "Ran "    << tests_run     << " tests,  "
