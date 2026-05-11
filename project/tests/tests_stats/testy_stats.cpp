@@ -194,8 +194,58 @@ void test_correlation_const_zero() {
     m.push_column({4.0, 5.0});
     ASSERT_CLOSE(stats::correlation(m, 0, 1), 0.0, 1e-12);
 }
-
 //mean_vector
+void test_mean_vector_basic() {
+    RollingMatrix<double> m(2, 4);
+    m.push_column({1.0, 2.0});
+    m.push_column({2.0, 4.0});
+    m.push_column({3.0, 6.0});
+    m.push_column({4.0, 8.0});
+
+    auto means = stats::mean_vector(m);
+    ASSERT(means.size() == 2);
+    ASSERT_CLOSE(means[0], 2.5, 1e-12);
+    ASSERT_CLOSE(means[1], 5.0, 1e-12);
+}
+
+//covariance_matrix
+void test_covariance_matrix_basic() {
+    RollingMatrix<double> m(2, 4);
+    m.push_column({1.0, 2.0});
+    m.push_column({2.0, 4.0});
+    m.push_column({3.0, 6.0});
+    m.push_column({4.0, 8.0});
+
+    auto cov = stats::covariance_matrix(m);
+    ASSERT(cov.rows() == 2);
+    ASSERT(cov.cols() == 2);
+
+    ASSERT_CLOSE(cov(0, 0), stats::variance(m, 0), 1e-12);
+    ASSERT_CLOSE(cov(1, 1), stats::variance(m, 1), 1e-12);
+
+    ASSERT_CLOSE(cov(0, 1), 10.0 / 3.0, 1e-12);
+    ASSERT_CLOSE(cov(1, 0), cov(0, 1), 1e-12);
+}
+
+//correlation_matrix
+void test_correlation_matrix_basic() {
+    RollingMatrix<double> m(2, 4);
+    // Asset 0 and Asset 1 are perfectly correlated
+    m.push_column({1.0, 2.0});
+    m.push_column({2.0, 4.0});
+    m.push_column({3.0, 6.0});
+    m.push_column({4.0, 8.0});
+
+    auto corr = stats::correlation_matrix(m);
+    ASSERT(corr.rows() == 2);
+    ASSERT(corr.cols() == 2);
+
+    ASSERT_CLOSE(corr(0, 0), 1.0, 1e-12);
+    ASSERT_CLOSE(corr(1, 1), 1.0, 1e-12);
+
+    ASSERT_CLOSE(corr(0, 1), 1.0, 1e-12);
+    ASSERT_CLOSE(corr(1, 0), 1.0, 1e-12);
+}
 
 
 // ===== entry point ===========================================================
@@ -221,6 +271,10 @@ int main() {
     RUN_TEST(test_correlation_perfect_minus_one);
     RUN_TEST(test_correlation_with_self);
     RUN_TEST(test_correlation_const_zero);
+
+    RUN_TEST(test_mean_vector_basic);
+    RUN_TEST(test_covariance_matrix_basic);
+    RUN_TEST(test_correlation_matrix_basic);
 
     std::cout << "\nRan " << tests_run << " tests,  passed "
               << (tests_run - tests_failed) << ",  failed " << tests_failed << "\n";
