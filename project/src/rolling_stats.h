@@ -1,36 +1,9 @@
 #ifndef PROJECT_ROLLING_STATS_H
 #define PROJECT_ROLLING_STATS_H
 #include "kontejner.h"
+#include "matrix.h"
 #include <cmath>
 #include <stdexcept>
-template <typename T>
-class Matrix {
-public:
-    using size_type = std::size_t;
-
-    Matrix(size_type rows, size_type cols);
-
-    T& operator()(size_type i, size_type j) noexcept;
-
-    const T& operator()(size_type i, size_type j) const noexcept;
-
-    size_type rows() const noexcept { return m_rows; }
-    size_type cols() const noexcept { return m_cols; }
-
-private:
-    size_type m_rows;
-    size_type m_cols;
-    std::vector<T> m_data;
-};
-
-template <typename T>
-Matrix<T>::Matrix(size_type rows, size_type cols) : m_rows(rows), m_cols(cols), m_data(rows * cols, T{}) {}
-
-template <typename T>
-T& Matrix<T>::operator()(size_type i, size_type j) noexcept {return m_data[i * m_cols + j];}
-
-template <typename T>
-const T& Matrix<T>::operator()(size_type i, size_type j) const noexcept {return m_data[i * m_cols + j];}
 
 namespace stats {
     template <typename T> double mean (const RollingMatrix<T>& m, size_t asset);
@@ -69,8 +42,6 @@ double stats::variance(const RollingMatrix<T> & m, size_t asset) {
 }
 template<typename T>
 double stats::stddev(const RollingMatrix<T> & m, size_t asset) {
-    if (m.cols() == 0)
-        throw std::logic_error("stats::stddev: empty window");
     return std::sqrt(variance(m, asset));
 }
 template<typename T>
@@ -91,7 +62,10 @@ template<typename T>
 double stats::correlation(const RollingMatrix<T>& m, size_t i, size_t j) {
     if (m.cols() == 0)
         throw std::logic_error("stats::correlation: empty window");
-    return covariance(m, i, j) / (stddev(m, i) * stddev(m, j));
+    double si = stddev(m, i);
+    double sj = stddev(m, j);
+    if (si == 0.0 || sj == 0.0) return 0.0;
+    return covariance(m, i, j) / (si * sj);
 }
 
 
