@@ -87,7 +87,7 @@ typename IncrementalStats<T>::size_type IncrementalStats<T>::rows() const noexce
 
 template<typename T>
 typename IncrementalStats<T>::size_type IncrementalStats<T>::cols() const noexcept {
-    return data_.filled();
+    return data_.cols();
 }
 
 template<typename T>
@@ -102,7 +102,7 @@ bool IncrementalStats<T>::empty() const noexcept {
 
 template<typename T>
 bool IncrementalStats<T>::full() const noexcept {
-    return data_.cols();
+    return data_.full();
 }
 //------------------
 template<typename T>
@@ -111,11 +111,11 @@ double IncrementalStats<T>::mean(size_type i) const{return mean_[i];}
 template<typename T>
 double IncrementalStats<T>::variance(size_type i) const {return cov_.at(i, i);}
 template<typename T>
-double IncrementalStats<T>::stddev(size_type i) const{return std::sqrt(cov_.at(i, i));}
+double IncrementalStats<T>::stddev(size_type i) const{return std::sqrt(variance(i));}
 template<typename T>
 double IncrementalStats<T>::covariance(size_type i, size_type j) const{return cov_.at(i, j);}
 template<typename T>
-double IncrementalStats<T>::correlation(size_type i, size_type j) const{return corr_.at(i, i);}
+double IncrementalStats<T>::correlation(size_type i, size_type j) const{return corr_.at(i, j);}
 //------------------
 //------------------
 template<typename T>
@@ -127,10 +127,63 @@ const Matrix<double>& IncrementalStats<T>::correlation_matrix() const{return cor
 //------------------
 //------------------
 template<typename T>
-void IncrementalStats<T>::subtract_oldest() {}
+void IncrementalStats<T>::subtract_oldest() {
+    for (size_type i = 0; i < n_assets_; ++i) {
+        double xi = static_cast<double>(data_(i, 0));
+        sum_[i] -= xi;
+        for (size_type j = i; j < n_assets_; ++j) {
+            double xj = static_cast<double>(data_(j, 0));
+            ssum_(i, j) -= xi * xj;
+            if (i != j) ssum_(j, i) = ssum_(i, j);
+        }
+    }
+}
 template<typename T>
-void IncrementalStats<T>::add_newest(const std::vector<T>& col){}
+void IncrementalStats<T>::add_newest(const std::vector<T>& col) {
+    for (size_type i = 0; i < n_assets_; ++i) {
+        double xi = static_cast<double>(col[i]);
+        sum_[i] += xi;
+        for (size_type j = i; j < n_assets_; ++j) {
+            double xj = static_cast<double>(col[j]);
+            ssum_(i, j) += xi * xj;
+            if (i != j) ssum_(j, i) = ssum_(i, j);
+        }
+    }
+}
 template<typename T>
-void IncrementalStats<T>::recompute_derived(){}
+void IncrementalStats<T>::recompute_derived() {
+    const size_type W = data_.cols();
+    if (W == 0) return;
+
+    const double Wd = static_cast<double>(W);
+    for (size_type i = 0; i < n_assets_; ++i)
+        mean_[i] = sum_[i] / Wd;
+
+    if (W < 2) return;
+    const double Wm1 = Wd - 1.0;
+
+    for (size_type i = 0; i < n_assets_; ++i) {
+        for (size_type j = i; j < n_assets_; ++j) {
+            double pop_cov = ssum_(i, j) / Wd - mean_[i] * mean_[j];
+            double sample_cov = pop_cov * Wd / Wm1;
+            cov_(i, j) = sample_cov;
+            if (i != j) cov_(j, i) = sample_cov;
+        }
+    }
+
+    std::vector<double> sd(n_assets_);
+    for (size_type i = 0; i < n_assets_; ++i)
+        sd[i] = std::sqrt(cov_(i, i));
+
+    for (size_type i = 0; i < n_assets_; ++i) {
+        for (size_type j = i; j < n_assets_; ++j) {
+            double c = (sd[i] == 0.0 || sd[j] == 0.0)
+                       ? 0.0
+                       : cov_(i, j) / (sd[i] * sd[j]);
+            corr_(i, j) = c;
+            if (i != j) corr_(j, i) = c;
+        }
+    }
+}
 //------------------
 #endif
