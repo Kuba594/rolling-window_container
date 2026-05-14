@@ -48,7 +48,7 @@ public:
         size_type n_assets_;
     public:
         column_view(T* data, size_type n);
-        T&        operator[](size_type asset)       noexcept;
+        T& operator[](size_type asset) noexcept;
         const T&  operator[](size_type asset) const noexcept;
         size_type size() const noexcept;
         T* data() const noexcept;

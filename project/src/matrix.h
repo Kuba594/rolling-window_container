@@ -9,7 +9,6 @@ template <typename T>
 class Matrix {
 public:
     using size_type       = std::size_t;
-    using difference_type = std::ptrdiff_t;
 
     Matrix(size_type rows, size_type cols);
     Matrix(size_type rows, size_type cols, const T& value);
@@ -31,8 +30,8 @@ public:
     void swap(Matrix& other) noexcept;
 
 private:
-    size_type      m_rows;
-    size_type      m_cols;
+    size_type m_rows;
+    size_type m_cols;
     std::vector<T> m_data;
 };
 

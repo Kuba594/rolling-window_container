@@ -11,7 +11,8 @@ message(STATUS "CXX standard: ${CMAKE_CXX_STANDARD}")
 
 add_executable(project src/main.cpp
         src/rolling_stats.h
-        src/matrix.h)
+        src/matrix.h
+        src/Incremental_stats.h)
 add_executable(tests tests/testy.cpp
 )
 add_executable(tests_stats tests/tests_stats/testy_stats.cpp
