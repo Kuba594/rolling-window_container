@@ -13,7 +13,8 @@ add_executable(project src/main.cpp
         src/rolling_stats.h
         src/matrix.h
         src/Incremental_stats.h
-        tests/tests_incrementa_stats/tests_incremental_stats.cpp)
+        src/data_loader.h
+        src/data_loader.cpp)
 add_executable(tests tests/testy.cpp
 )
 add_executable(tests_stats tests/tests_stats/testy_stats.cpp

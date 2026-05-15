@@ -1,4 +1,4 @@
-#include "../../src/Incremental_stats.h"
+#include "../../src/incremental_stats.h"
 #include "../../src/rolling_stats.h"
 #include <iostream>
 #include <random>
