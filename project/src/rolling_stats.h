@@ -1,6 +1,6 @@
 #ifndef PROJECT_ROLLING_STATS_H
 #define PROJECT_ROLLING_STATS_H
-#include "kontejner.h"
+#include "rolling_matrix.h"
 #include "matrix.h"
 #include <cmath>
 #include <stdexcept>

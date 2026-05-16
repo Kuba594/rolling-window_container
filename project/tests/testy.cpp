@@ -1,4 +1,4 @@
-#include "../src/kontejner.h"
+#include "../src/rolling_matrix.h"
 #include "../src/rolling_stats.h"
 #include <iostream>
 #include <stdexcept>

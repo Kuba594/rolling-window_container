@@ -5,10 +5,11 @@
 #include <vector>
 #include <algorithm>
 
+
 template <typename T>
 class Matrix {
 public:
-    using size_type       = std::size_t;
+    using size_type = std::size_t;
 
     Matrix(size_type rows, size_type cols);
     Matrix(size_type rows, size_type cols, const T& value);
@@ -21,9 +22,9 @@ public:
     T* data() noexcept { return m_data.data(); }
     const T* data() const noexcept { return m_data.data(); }
 
-    size_type rows()  const noexcept { return m_rows; }
-    size_type cols()  const noexcept { return m_cols; }
-    size_type size()  const noexcept { return m_rows * m_cols; }
+    size_type rows() const noexcept { return m_rows; }
+    size_type cols() const noexcept { return m_cols; }
+    size_type size() const noexcept { return m_rows * m_cols; }
     bool empty() const noexcept { return m_rows == 0 || m_cols == 0; }
 
     void fill(const T& value);

@@ -1,5 +1,5 @@
 #include "ui.h"
-
+#include <iostream>
 //main launching the UI
 int main() {
     UI repl;

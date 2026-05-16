@@ -1,12 +1,7 @@
 #ifndef PROJECT_UI_H
 #define PROJECT_UI_H
 #include <filesystem>
-#include <fstream>
-#include <iomanip>
-#include <iostream>
 #include <memory>
-#include <sstream>
-#include <stdexcept>
 #include <string>
 #include <vector>
 #include "data_loader.h"

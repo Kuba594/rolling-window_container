@@ -1,5 +1,9 @@
 #include "ui.h"
-
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <sstream>
+#include <stdexcept>
 namespace fs = std::filesystem;
 
 //Main loop that allows user to interact with enviroment
@@ -304,6 +308,7 @@ void UI::print_matrix(const std::string& title, const Matrix<double>& m, const s
     }
 }
 
+//writes daily results, either means or variaces
 void UI::write_time_series(const std::string& path, const std::vector<std::string>& asset_names, const std::vector<std::vector<double>>& rows) {
     std::ofstream f(path);
     if (!f.is_open())
@@ -313,7 +318,7 @@ void UI::write_time_series(const std::string& path, const std::vector<std::strin
     f << '\n';
     for (std::size_t t = 0; t < rows.size(); ++t) {
         f << (t + 1);
-        for (auto v : rows[t]) f << ',' << v;
+        for (auto v : rows[t]) f << ',' << v; //je to double
         f << '\n';
     }
 }

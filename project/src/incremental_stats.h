@@ -5,7 +5,7 @@
 #include <cmath>
 #include <stdexcept>
 #include <vector>
-#include "kontejner.h"
+#include "rolling_matrix.h"
 #include "matrix.h"
 
 template <typename T>
