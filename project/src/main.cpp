@@ -1,12 +1,13 @@
-#include <iostream>
-#include "kontejner.h"
-using namespace std;
-int main(int argc, char ** argv){
-    RollingMatrix<double> k(1,2);
-    cout << k.rows() <<" " <<k.capacity()<<" "<<k.cols()<< endl;
-    k.push_column({1});
-    k.push_column({2});
-    k.push_column({3});
-    cout << k.at(0,1) << endl;
+#include "ui.h"
+
+//main launching the UI
+int main() {
+    UI repl;
+    try {
+        repl.run();
+    } catch (const std::exception& e) {
+        std::cerr << "PROBLEM: " << e.what() << "\n";
+        return 1;
+    }
     return 0;
 }

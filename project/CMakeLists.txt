@@ -14,7 +14,9 @@ add_executable(project src/main.cpp
         src/matrix.h
         src/Incremental_stats.h
         src/data_loader.h
-        src/data_loader.cpp)
+        src/data_loader.cpp
+        src/ui.cpp
+        src/ui.h)
 add_executable(tests tests/testy.cpp
 )
 add_executable(tests_stats tests/tests_stats/testy_stats.cpp
