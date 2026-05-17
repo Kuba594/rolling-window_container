@@ -6,6 +6,8 @@
 #include <stdexcept>
 #include <memory>
 
+//Main class of whole project. It holds window size infomration on data. Once window is filled the first observation
+//is overwritten.
 template <typename T>
 class RollingMatrix {
 public:
@@ -13,9 +15,9 @@ public:
     using size_type  = std::size_t;
 
     RollingMatrix(size_type n_assets, size_type window);
-    RollingMatrix(const RollingMatrix& other);                     //copy ctor
-    RollingMatrix& operator=(RollingMatrix other);          //copy assign
-    RollingMatrix(RollingMatrix&& other) noexcept = default;       //move ctor
+    RollingMatrix(const RollingMatrix& other); //copy ctor
+    RollingMatrix& operator=(RollingMatrix other); //copy assign
+    RollingMatrix(RollingMatrix&& other) noexcept = default; //move ctor
     ~RollingMatrix() = default; //destructor
 
     size_type rows() const noexcept;
@@ -71,6 +73,7 @@ private:
 
 };
 //-----------------------------
+//methods that begin and end iterators
 template<typename T>
 typename RollingMatrix<T>::column_iterator RollingMatrix<T>::begin() {
     return column_iterator(this, 0);
@@ -102,6 +105,7 @@ typename RollingMatrix<T>::const_column_iterator RollingMatrix<T>::cend() const 
 //-----------------------------
 
 //-----------------------------
+//const iterator
 template<typename T>
 class RollingMatrix<T>::const_column_iterator {
 public:
@@ -232,6 +236,7 @@ bool RollingMatrix<T>::const_column_iterator::operator>(const const_column_itera
 //-----------------------------
 
 //-----------------------------
+//non-const iterator
 template<typename T>
 class RollingMatrix<T>::column_iterator {
 public:
@@ -366,6 +371,7 @@ bool RollingMatrix<T>::column_iterator::operator>(const column_iterator& o) cons
 //-----------------------------
 
 //-----------------------------
+//const and non-const column view implementaios. It shows colulm of assets
 template <typename T>
 T& RollingMatrix<T>::column_view::operator[](size_type asset) noexcept {return col_data_[asset];}
 
@@ -401,6 +407,7 @@ RollingMatrix<T>::const_column_view::const_column_view(const column_view& v)
 //-----------------------------
 
 //-----------------------------
+//basic methods returning info about rolling matrix
 template<typename T>
 typename RollingMatrix<T>::size_type RollingMatrix<T>::rows() const noexcept {return n_assets_;}
 
@@ -419,6 +426,7 @@ bool RollingMatrix<T>::full() const noexcept {return filled_ == window_;}
 //-----------------------------
 
 //-----------------------------
+//ctors and assignment
 template<typename T>
 RollingMatrix<T>::RollingMatrix(size_type n_assets, size_type window) : n_assets_(n_assets),
 window_(window), head_(0), filled_(0), data_(std::make_unique<T[]>(n_assets * window)) {
@@ -440,6 +448,7 @@ RollingMatrix<T>& RollingMatrix<T>::operator=(RollingMatrix other) {
 //-----------------------------
 
 //-----------------------------
+//methods that allow to get info from inside of matrix
 template<typename T>
 T& RollingMatrix<T>::operator()(size_type asset, size_type step) noexcept {
     size_type physical_col = (head_ + step) % window_;
@@ -468,6 +477,7 @@ const T& RollingMatrix<T>::at(size_type asset, size_type step) const {
 //-----------------------------
 
 //-----------------------------
+//method that pushes one of observations if is filled first column is overwritten
 template<typename T>
 void RollingMatrix<T>::push_column(const std::vector<T>& col) {
     if (col.size() != n_assets_)
@@ -502,6 +512,7 @@ template<typename T>
 void swap(RollingMatrix<T>& a, RollingMatrix<T>& b) noexcept {
     a.swap(b);
 }
+//comparing operators
 template <typename T>
 bool operator==(const RollingMatrix<T>& a, const RollingMatrix<T>& b) {
     if (a.rows() != b.rows() || a.cols() != b.cols()) return false;
