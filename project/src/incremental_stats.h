@@ -8,6 +8,9 @@
 #include "rolling_matrix.h"
 #include "matrix.h"
 
+//class that computes stats on rolling matrix. If observation is added statistics are updated.
+//this method wraps around rolling matrix and computes stats on top of it.
+//its templated on the type that matrix inside is going to have but statistics are stored as doubles.
 template <typename T>
 class IncrementalStats {
 public:
@@ -57,6 +60,7 @@ IncrementalStats<T>::IncrementalStats(size_type n_assets, size_type window): n_a
 data_(n_assets, window), sum_(n_assets, 0), ssum_(n_assets, n_assets), mean_(n_assets, 0), cov_(n_assets, n_assets),
 corr_(n_assets, n_assets){}
 
+//pushes collumn and calls for stats updates
 template<typename T>
 void IncrementalStats<T>::push_column(const std::vector<T>& col) {
     if (col.size() != n_assets_)
@@ -67,7 +71,7 @@ void IncrementalStats<T>::push_column(const std::vector<T>& col) {
     add_newest(col);
     recompute_derived();
 }
-
+//clears matrrix and stats
 template<typename T>
 void IncrementalStats<T>::clear() noexcept {
     data_.clear();
@@ -105,6 +109,7 @@ bool IncrementalStats<T>::full() const noexcept {
     return data_.full();
 }
 //------------------
+//methods returning stats that are stored inside
 template<typename T>
 double IncrementalStats<T>::mean(size_type i) const{return mean_[i];}
 
@@ -126,6 +131,7 @@ template<typename T>
 const Matrix<double>& IncrementalStats<T>::correlation_matrix() const{return corr_;}
 //------------------
 //------------------
+//those 3 methods recompute stats inside
 template<typename T>
 void IncrementalStats<T>::subtract_oldest() {
     for (size_type i = 0; i < n_assets_; ++i) {
