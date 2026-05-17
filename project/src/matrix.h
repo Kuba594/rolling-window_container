@@ -5,7 +5,7 @@
 #include <vector>
 #include <algorithm>
 
-
+//class that represents matrix, used for correlation and covariance matricies mostly
 template <typename T>
 class Matrix {
 public:
@@ -53,6 +53,7 @@ bool operator!=(const Matrix<T>& a, const Matrix<T>& b) {
     return !(a == b);
 }
 
+//constructors
 template <typename T>
 Matrix<T>::Matrix(size_type rows, size_type cols)
     : m_rows(rows), m_cols(cols), m_data(rows * cols, T{}) {}
