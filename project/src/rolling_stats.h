@@ -5,6 +5,7 @@
 #include <cmath>
 #include <stdexcept>
 
+//computes basic stats on whole rolling matrix from scratch
 namespace stats {
     template <typename T> double mean (const RollingMatrix<T>& m, size_t asset);
     template <typename T> double variance (const RollingMatrix<T>& m, size_t asset);
@@ -17,6 +18,7 @@ namespace stats {
     template <typename T> Matrix<double> correlation_matrix(const RollingMatrix<T>& m);
 }
 
+//computes mean if ith asset across widnow
 template<typename T>
 double stats::mean(const RollingMatrix<T> & m, size_t asset) {
     if (m.cols() == 0)
@@ -27,6 +29,7 @@ double stats::mean(const RollingMatrix<T> & m, size_t asset) {
         sum += static_cast<double>(col[asset]);
     return sum / static_cast<double>(m.cols());
 }
+//computes variance of i-th asset across window
 template<typename T>
 double stats::variance(const RollingMatrix<T> & m, size_t asset) {
     if (m.cols() < 2)
@@ -40,10 +43,12 @@ double stats::variance(const RollingMatrix<T> & m, size_t asset) {
     }
     return acc / (static_cast<double>(m.cols())-1);
 }
+//square root of variacne
 template<typename T>
 double stats::stddev(const RollingMatrix<T> & m, size_t asset) {
     return std::sqrt(variance(m, asset));
 }
+//computes covariance between two assets
 template<typename T>
 double stats::covariance(const RollingMatrix<T>& m, size_t i, size_t j) {
     if (m.cols() == 0)
@@ -58,6 +63,7 @@ double stats::covariance(const RollingMatrix<T>& m, size_t i, size_t j) {
     }
     return acc / (static_cast<double>(m.cols())-1);
 }
+//computs correlation between two assets
 template<typename T>
 double stats::correlation(const RollingMatrix<T>& m, size_t i, size_t j) {
     if (m.cols() == 0)
@@ -68,7 +74,7 @@ double stats::correlation(const RollingMatrix<T>& m, size_t i, size_t j) {
     return covariance(m, i, j) / (si * sj);
 }
 
-
+//computes means of all assets
 template <typename T>
 std::vector<double> stats::mean_vector(const RollingMatrix<T>& m) {
     std::vector<double> res(m.rows());
@@ -78,6 +84,7 @@ std::vector<double> stats::mean_vector(const RollingMatrix<T>& m) {
     return res;
 }
 
+//computes covariacne matrix of all assets
 template <typename T>
 Matrix<double> stats::covariance_matrix(const RollingMatrix<T>& m) {
     size_t n = m.rows();
@@ -91,7 +98,7 @@ Matrix<double> stats::covariance_matrix(const RollingMatrix<T>& m) {
     }
     return cov;
 }
-
+//computes correlation matrix of all assets
 template <typename T>
 Matrix<double> stats::correlation_matrix(const RollingMatrix<T>& m) {
     size_t n = m.rows();
