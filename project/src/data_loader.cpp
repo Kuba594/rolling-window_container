@@ -4,14 +4,13 @@
 #include <stdexcept>
 #include <string>
 
-
+//two helper method for processing lines
 std::string trim(const std::string& s) {
     size_t first = s.find_first_not_of(" \t\r\n");
     if (first == std::string::npos) return "";
     size_t last  = s.find_last_not_of(" \t\r\n");
     return s.substr(first, last - first + 1);
 }
-
 void split_csv(const std::string& line, std::vector<std::string>& out) {
     out.clear();
     std::stringstream ss(line);
@@ -21,6 +20,7 @@ void split_csv(const std::string& line, std::vector<std::string>& out) {
     }
 }
 
+//constructor, takse path as input and if has_header first row is read as header
 CsvReader::CsvReader(const std::string& path, bool has_header) {
     file_.open(path);
     if (!file_.is_open()) {
@@ -44,7 +44,7 @@ const std::vector<std::string>& CsvReader::headers() const noexcept {
 std::size_t CsvReader::expected_cols() const noexcept {
     return expected_cols_;
 }
-
+//method that reads the next line of a file. Returns false at the end of file.
 bool CsvReader::next(std::vector<double>& out) {
     std::string line;
     while (std::getline(file_, line)) {
@@ -77,7 +77,7 @@ bool CsvReader::next(std::vector<double>& out) {
     }
     return false;
 }
-
+//method that writes matrix to a file
 void write_matrix(const std::string& path, const Matrix<double>& m, const std::vector<std::string>& labels) {
 
     if (!labels.empty()) {
