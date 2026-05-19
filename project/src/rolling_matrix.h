@@ -72,37 +72,7 @@ private:
     std::unique_ptr<T[]> data_;
 
 };
-//-----------------------------
-//methods that begin and end iterators
-template<typename T>
-typename RollingMatrix<T>::column_iterator RollingMatrix<T>::begin() {
-    return column_iterator(this, 0);
-}
 
-template<typename T>
-typename RollingMatrix<T>::column_iterator RollingMatrix<T>::end() {
-    return column_iterator(this, filled_);
-}
-template<typename T>
-typename RollingMatrix<T>::const_column_iterator RollingMatrix<T>::begin() const noexcept {
-    return const_column_iterator(this, 0);
-}
-
-template<typename T>
-typename RollingMatrix<T>::const_column_iterator RollingMatrix<T>::end() const noexcept {
-    return const_column_iterator(this, filled_);
-}
-
-template<typename T>
-typename RollingMatrix<T>::const_column_iterator RollingMatrix<T>::cbegin() const noexcept {
-    return begin();
-}
-
-template<typename T>
-typename RollingMatrix<T>::const_column_iterator RollingMatrix<T>::cend() const noexcept {
-    return end();
-}
-//-----------------------------
 
 //-----------------------------
 //const iterator
@@ -527,6 +497,37 @@ bool operator==(const RollingMatrix<T>& a, const RollingMatrix<T>& b) {
 template <typename T>
 bool operator!=(const RollingMatrix<T>& a, const RollingMatrix<T>& b) {
     return !(a == b);
+}
+//-----------------------------
+//-----------------------------
+//methods that begin and end iterators
+template<typename T>
+typename RollingMatrix<T>::column_iterator RollingMatrix<T>::begin() {
+    return column_iterator(this, 0);
+}
+
+template<typename T>
+typename RollingMatrix<T>::column_iterator RollingMatrix<T>::end() {
+    return column_iterator(this, filled_);
+}
+template<typename T>
+typename RollingMatrix<T>::const_column_iterator RollingMatrix<T>::begin() const noexcept {
+    return const_column_iterator(this, 0);
+}
+
+template<typename T>
+typename RollingMatrix<T>::const_column_iterator RollingMatrix<T>::end() const noexcept {
+    return const_column_iterator(this, filled_);
+}
+
+template<typename T>
+typename RollingMatrix<T>::const_column_iterator RollingMatrix<T>::cbegin() const noexcept {
+    return begin();
+}
+
+template<typename T>
+typename RollingMatrix<T>::const_column_iterator RollingMatrix<T>::cend() const noexcept {
+    return end();
 }
 //-----------------------------
 #endif // ROLLING_MATRIX_HPP
